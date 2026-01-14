@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Tracker</title>
+    <title>Routlin - Activity Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -172,15 +172,33 @@
             cursor: pointer;
             border: 3px solid transparent;
             transition: all 0.2s;
+            position: relative;
         }
         
-        .color-option:hover {
+        .color-option:hover:not(.disabled) {
             transform: scale(1.1);
         }
         
         .color-option.selected {
             border-color: #3b82f6;
             transform: scale(1.15);
+        }
+        
+        .color-option.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .color-option.disabled::after {
+            content: '✕';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
         }
         
         .premium-badge {
@@ -334,6 +352,75 @@
             border-radius: 6px;
             transition: width 0.3s;
         }
+        
+
+        
+        .period-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        
+        .period-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #1f2937;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .dark .period-btn {
+            background: #3a3a3a;
+            border-color: #404040;
+            color: #e0e0e0;
+        }
+        
+        .period-btn:hover:not(.disabled) {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .dark .period-btn:hover:not(.disabled) {
+            background: #1e3a5f;
+        }
+        
+        .period-btn.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .period-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .chart-container {
+            position: relative;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-premium-locked {
+            position: relative;
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-premium-locked:hover {
+            opacity: 0.7;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
     </style>
 </head>
 <body>
@@ -430,7 +517,7 @@
         <div id="tagsTab" class="tab-content content-area">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">My Tags</h2>
-                <button onclick="openAddTagModal()" class="btn btn-primary">+ Add Tag</button>
+                <button id="addTagBtn" onclick="openAddTagModal()" class="btn btn-primary">+ Add Tag</button>
             </div>
             <div id="tagsList"></div>
         </div>
@@ -455,7 +542,7 @@
             
             <div class="stats-card">
                 <h3 class="font-semibold mb-4">Distribution</h3>
-                <div style="position: relative; min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                <div class="chart-container">
                     <canvas id="statsChart"></canvas>
                     <div id="statsNoData" style="display: none; width: 100%; text-align: center; color: #6b7280; position: absolute;">
                         <p class="text-lg mb-2">📊</p>
@@ -465,6 +552,33 @@
             </div>
             
             <div id="statsDetails"></div>
+            
+            <!-- Activity Trend Line Graph -->
+            <div class="stats-card">
+                <h3 class="font-semibold mb-4">Activity Trend 📈</h3>
+                <div class="period-filter">
+                    <button class="period-btn active" onclick="setTrendPeriod('7days')">Past 7 Days</button>
+                    <button class="period-btn disabled" onclick="tryPremiumFeature('weekly')">
+                        Weekly
+                        <span class="premium-badge" style="margin-left: 4px; font-size: 8px;">PRO</span>
+                    </button>
+                    <button class="period-btn disabled" onclick="tryPremiumFeature('monthly')">
+                        Monthly
+                        <span class="premium-badge" style="margin-left: 4px; font-size: 8px;">PRO</span>
+                    </button>
+                    <button class="period-btn disabled" onclick="tryPremiumFeature('yearly')">
+                        Yearly
+                        <span class="premium-badge" style="margin-left: 4px; font-size: 8px;">PRO</span>
+                    </button>
+                </div>
+                <div class="chart-container" style="min-height: 300px;">
+                    <canvas id="trendChart"></canvas>
+                    <div id="trendNoData" style="display: none; width: 100%; text-align: center; color: #6b7280; position: absolute;">
+                        <p class="text-lg mb-2">📈</p>
+                        No activity data for the past 7 days
+                    </div>
+                </div>
+            </div>
             
             <div class="stats-card">
                 <h3 class="font-semibold mb-4">Streaks 🔥</h3>
@@ -524,7 +638,13 @@
                 <button onclick="exportData()" class="btn btn-secondary">Export My Data (JSON)</button>
             </div>
             
-            <button onclick="logout()" class="btn btn-danger w-full">Logout</button>
+            <button onclick="logout()" class="btn btn-danger w-full mb-4">Logout</button>
+            
+            <div class="stats-card mb-4" style="border: 2px solid #ef4444;">
+                <h3 class="font-semibold mb-2 text-red-600">⚠️ Danger Zone</h3>
+                <p class="text-sm text-gray-600 mb-4">Once you delete your account, there is no going back. This action cannot be undone.</p>
+                <button onclick="deleteAccount()" class="btn btn-danger w-full">Delete Account Permanently</button>
+            </div>
         </div>
         
         <!-- Bottom Navigation -->
@@ -681,6 +801,7 @@
         // Replace this with your actual Cloudflare Worker URL after deployment
         // Follow the SETUP-GUIDE.md to deploy the worker and get this URL
         const API_URL = 'https://routlin.sm9developer.workers.dev';
+        // Example: const API_URL = 'https://activity-tracker-api.yourname.workers.dev';
         
         // Data structure
         let appData = {
@@ -707,6 +828,8 @@
         let selectedDateForModal = null;
         let selectedColor = COLORS[0];
         let statsChart = null;
+        let trendChart = null;
+        let currentTrendPeriod = '7days';
         
         // Initialize app
         function init() {
@@ -889,12 +1012,63 @@
         }
         
         function logout() {
+            if (!confirm('Are you sure you want to logout?')) {
+                return;
+            }
+            
             appData.currentUser = null;
             saveData();
             document.getElementById('authScreen').style.display = 'flex';
             document.getElementById('mainApp').style.display = 'none';
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
+        }
+        
+        async function deleteAccount() {
+            const confirmation1 = confirm('⚠️ WARNING: Are you absolutely sure you want to DELETE your account?\n\nThis will permanently remove:\n• Your username\n• All your tags\n• All your activity data\n• All your goals\n• Everything associated with your account\n\nThis action CANNOT be undone!');
+            
+            if (!confirmation1) {
+                return;
+            }
+            
+            const confirmation2 = confirm('FINAL WARNING: This is your last chance!\n\nType your username mentally and confirm deletion.\n\nClick OK to PERMANENTLY DELETE your account.');
+            
+            if (!confirmation2) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/delete-account`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: appData.currentUser,
+                        sessionToken: appData.sessionToken
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to delete account');
+                }
+                
+                // Account deleted successfully
+                alert('✅ Your account has been permanently deleted.\n\nAll your data has been removed from our servers.\n\nGoodbye!');
+                
+                // Clear local data and logout
+                appData.currentUser = null;
+                appData.sessionToken = null;
+                localStorage.removeItem('activityTrackerData');
+                
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                
+            } catch (error) {
+                alert('❌ Failed to delete account: ' + (error.message || 'Please try again later.'));
+            }
         }
         
         function showMainApp() {
@@ -1115,6 +1289,20 @@
         function renderTags() {
             const userData = appData.users[appData.currentUser];
             const tagsList = document.getElementById('tagsList');
+            const addTagBtn = document.getElementById('addTagBtn');
+
+            // Check if user has reached 10 tag limit
+            if (userData.tags.length >= 10) {
+                addTagBtn.className = 'btn btn-premium-locked';
+                addTagBtn.innerHTML = '🔒 Add Tag <span class="premium-badge" style="margin-left: 4px;">PRO</span>';
+                addTagBtn.onclick = function() {
+                    alert('🌟 Tag Limit Reached!\n\nYou have created 10 tags (maximum for free users).\n\nUpgrade to Premium to:\n• Create unlimited tags\n• Access advanced analytics\n• Unlock premium features\n\nPremium coming soon!');
+                };
+            } else {
+                addTagBtn.className = 'btn btn-primary';
+                addTagBtn.innerHTML = '+ Add Tag';
+                addTagBtn.onclick = openAddTagModal;
+            }
 
             if (userData.tags.length === 0) {
                 tagsList.innerHTML = '<p class="text-gray-500">No tags yet. Click "Add Tag" to create your first tag.</p>';
@@ -1146,40 +1334,70 @@
         }
         
         function openAddTagModal() {
+            const userData = appData.users[appData.currentUser];
+            
+            // Check if user has reached the 10 tag limit
+            if (userData.tags.length >= 10) {
+                return; // Button click is already handled in renderTags()
+            }
+            
             document.getElementById('addTagModal').classList.add('active');
             document.getElementById('newTagName').value = '';
 
-            // Render color picker with unique colors only
+            // Normalize ALL used colors to uppercase HEX format for strict comparison
+            const usedColors = userData.tags.map(t => {
+                // Convert any RGB to HEX if needed, then uppercase
+                let colorHex = t.color;
+                if (colorHex.startsWith('rgb')) {
+                    const rgbMatch = colorHex.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                    if (rgbMatch) {
+                        const r = parseInt(rgbMatch[1]);
+                        const g = parseInt(rgbMatch[2]);
+                        const b = parseInt(rgbMatch[3]);
+                        colorHex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+                    }
+                }
+                return colorHex.toUpperCase();
+            });
+
+            // Render color picker
             const colorPicker = document.getElementById('colorPicker');
             colorPicker.innerHTML = '';
-            selectedColor = COLORS[0];
-
-            const userData = appData.users[appData.currentUser];
-            const usedColors = userData.tags.map(t => t.color);
+            
+            // Find first available color
+            let firstAvailableColor = null;
+            for (let color of COLORS) {
+                if (!usedColors.includes(color.toUpperCase())) {
+                    firstAvailableColor = color;
+                    break;
+                }
+            }
+            
+            selectedColor = firstAvailableColor || COLORS[0];
 
             COLORS.forEach(color => {
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'color-option';
                 colorDiv.style.backgroundColor = color;
 
-                // Check if color is already used
-                const isUsed = usedColors.includes(color);
+                // Strict case-insensitive comparison
+                const isUsed = usedColors.includes(color.toUpperCase());
+                
                 if (isUsed) {
-                    colorDiv.style.opacity = '0.3';
-                    colorDiv.style.cursor = 'not-allowed';
+                    colorDiv.classList.add('disabled');
                     colorDiv.title = 'This color is already in use';
+                } else {
+                    if (color.toUpperCase() === selectedColor.toUpperCase()) {
+                        colorDiv.classList.add('selected');
+                    }
+                    
+                    colorDiv.onclick = () => {
+                        document.querySelectorAll('#colorPicker .color-option').forEach(el => el.classList.remove('selected'));
+                        colorDiv.classList.add('selected');
+                        selectedColor = color;
+                    };
                 }
 
-                if (color === selectedColor && !isUsed) {
-                    colorDiv.classList.add('selected');
-                }
-
-                colorDiv.onclick = () => {
-                    if (isUsed) return; // Can't select used colors
-                    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
-                    colorDiv.classList.add('selected');
-                    selectedColor = color;
-                };
                 colorPicker.appendChild(colorDiv);
             });
         }
@@ -1208,9 +1426,9 @@
                 return;
             }
 
-            // Check if color is already used
-            if (userData.tags.some(t => t.color === selectedColor)) {
-                alert('This color is already used by another tag. Each tag must have a unique color.');
+            // Check if color is already used (case insensitive)
+            if (userData.tags.some(t => t.color.toUpperCase() === selectedColor.toUpperCase())) {
+                alert('This color is already used by another tag. Please select a different color.');
                 return;
             }
 
@@ -1238,34 +1456,36 @@
             document.getElementById('editTagName').value = tag.name;
             document.getElementById('editTagModal').classList.add('active');
 
+            // Get used colors (excluding current tag's color), normalized to uppercase
+            const usedColors = userData.tags.filter(t => t.id !== tagId).map(t => t.color.toUpperCase());
+
             // Render color picker
             const colorPicker = document.getElementById('editColorPicker');
             colorPicker.innerHTML = '';
-
-            const usedColors = userData.tags.filter(t => t.id !== tagId).map(t => t.color);
 
             COLORS.forEach(color => {
                 const colorDiv = document.createElement('div');
                 colorDiv.className = 'color-option';
                 colorDiv.style.backgroundColor = color;
 
-                // Check if color is already used by other tags
-                const isUsed = usedColors.includes(color);
+                const isUsed = usedColors.includes(color.toUpperCase());
+                
                 if (isUsed) {
+                    colorDiv.classList.add('disabled');
+                    colorDiv.title = 'This color is already in use by another tag';
                     colorDiv.style.opacity = '0.3';
                     colorDiv.style.cursor = 'not-allowed';
-                    colorDiv.title = 'This color is already in use by another tag';
+                } else {
+                    if (color.toUpperCase() === tag.color.toUpperCase()) {
+                        colorDiv.classList.add('selected');
+                    }
+                    
+                    colorDiv.onclick = () => {
+                        document.querySelectorAll('#editColorPicker .color-option').forEach(el => el.classList.remove('selected'));
+                        colorDiv.classList.add('selected');
+                    };
                 }
 
-                if (color === tag.color) {
-                    colorDiv.classList.add('selected');
-                }
-
-                colorDiv.onclick = () => {
-                    if (isUsed) return; // Can't select used colors
-                    document.querySelectorAll('#editColorPicker .color-option').forEach(el => el.classList.remove('selected'));
-                    colorDiv.classList.add('selected');
-                };
                 colorPicker.appendChild(colorDiv);
             });
         }
@@ -1299,12 +1519,22 @@
             // Find selected color
             const selectedColorEl = document.querySelector('#editColorPicker .color-option.selected');
             if (selectedColorEl) {
-                const newColor = selectedColorEl.style.backgroundColor;
+                const rgbColor = selectedColorEl.style.backgroundColor;
+                // Convert RGB to Hex
+                const rgbMatch = rgbColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                let newColor = tag.color;
+                
+                if (rgbMatch) {
+                    const r = parseInt(rgbMatch[1]);
+                    const g = parseInt(rgbMatch[2]);
+                    const b = parseInt(rgbMatch[3]);
+                    newColor = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+                }
 
                 // Check if color is changed and if new color is already used
-                if (newColor !== tag.color) {
-                    if (userData.tags.some(t => t.color === newColor && t.id !== editingTagId)) {
-                        alert('This color is already used by another tag. Each tag must have a unique color.');
+                if (newColor.toUpperCase() !== tag.color.toUpperCase()) {
+                    if (userData.tags.some(t => t.color.toUpperCase() === newColor.toUpperCase() && t.id !== editingTagId)) {
+                        alert('This color is already used by another tag. Please select a different color.');
                         return;
                     }
                     tag.color = newColor;
@@ -1369,20 +1599,15 @@
                 periodInfo.querySelector('.text-sm').classList.add('text-blue-900');
             }
             
-            // STEP 1: Count how many times each tag was USED in the selected period
-            // This counts actual usage, not just existence of tags
+            // Count tag usage
             const tagUsageCounts = {};
             
-            // Go through each calendar entry
             Object.entries(userData.entries).forEach(([dateStr, tagIdsForDay]) => {
-                // Parse the date string to compare with period range
                 const [year, month, day] = dateStr.split('-').map(Number);
                 const entryDate = new Date(year, month - 1, day);
                 entryDate.setHours(0, 0, 0, 0);
                 
-                // Check if this date falls within our selected period
                 if (entryDate >= dateRange.start && entryDate <= dateRange.end) {
-                    // Count each tag used on this day
                     tagIdsForDay.forEach(tagId => {
                         if (!tagUsageCounts[tagId]) {
                             tagUsageCounts[tagId] = 0;
@@ -1392,19 +1617,17 @@
                 }
             });
             
-            // STEP 2: Build arrays for chart - ONLY include tags that were actually used
+            // Build chart data
             const chartLabels = [];
             const chartData = [];
             const chartColors = [];
             
-            // Also track for stats
             let mostUsedTagName = null;
             let mostUsedCount = 0;
             let leastUsedTagName = null;
             let leastUsedCount = Infinity;
             const usedTagIds = [];
             
-            // Process each tag that has usage > 0
             Object.entries(tagUsageCounts).forEach(([tagId, count]) => {
                 if (count > 0) {
                     const tag = userData.tags.find(t => t.id === tagId);
@@ -1414,13 +1637,11 @@
                         chartColors.push(tag.color);
                         usedTagIds.push(tagId);
                         
-                        // Track most used
                         if (count > mostUsedCount) {
                             mostUsedCount = count;
                             mostUsedTagName = tag.name;
                         }
                         
-                        // Track least used (among used tags)
                         if (count < leastUsedCount) {
                             leastUsedCount = count;
                             leastUsedTagName = tag.name;
@@ -1429,7 +1650,7 @@
                 }
             });
             
-            // STEP 3: Find unused tags (tags that exist but weren't used in this period)
+            // Find unused tags
             const unusedTagNames = [];
             userData.tags.forEach(tag => {
                 if (!usedTagIds.includes(tag.id)) {
@@ -1437,23 +1658,20 @@
                 }
             });
             
-            // STEP 4: Render the chart
+            // Render pie chart
             const chartCanvas = document.getElementById('statsChart');
             const noDataMsg = document.getElementById('statsNoData');
             const statsDetails = document.getElementById('statsDetails');
             
-            // Always destroy old chart first
             if (statsChart) {
                 statsChart.destroy();
                 statsChart = null;
             }
             
-            // Check if we have any data to show
             if (chartData.length === 0) {
                 chartCanvas.style.display = 'none';
                 noDataMsg.style.display = 'block';
                 
-                // Show unused tags even when no usage data
                 if (unusedTagNames.length > 0) {
                     statsDetails.innerHTML = `
                         <div class="stats-card">
@@ -1469,16 +1687,15 @@
                     `;
                 }
                 
+                updateTrendChart();
                 updateStreaks();
                 updateGoals();
                 return;
             }
             
-            // Show chart
             chartCanvas.style.display = 'block';
             noDataMsg.style.display = 'none';
             
-            // Create new pie chart with PROPORTIONAL data based on actual usage counts
             statsChart = new Chart(chartCanvas, {
                 type: 'pie',
                 data: {
@@ -1493,6 +1710,12 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -1518,10 +1741,9 @@
                 }
             });
             
-            // STEP 5: Build stats details HTML
+            // Build stats details
             let detailsHTML = '<div class="stats-card">';
             
-            // Most Used
             if (mostUsedTagName) {
                 detailsHTML += `
                     <div class="mb-3 flex items-center gap-2">
@@ -1533,7 +1755,6 @@
                 `;
             }
             
-            // Least Used (only show if different from most used)
             if (leastUsedTagName && leastUsedTagName !== mostUsedTagName) {
                 detailsHTML += `
                     <div class="mb-3 flex items-center gap-2">
@@ -1545,7 +1766,6 @@
                 `;
             }
             
-            // Not Used
             if (unusedTagNames.length > 0) {
                 detailsHTML += `
                     <div class="flex items-center gap-2">
@@ -1559,8 +1779,199 @@
             detailsHTML += '</div>';
             statsDetails.innerHTML = detailsHTML;
             
+            updateTrendChart();
             updateStreaks();
             updateGoals();
+            updateTrendChart(); // Call trend chart update
+        }
+
+        // Global variable for trend chart observer
+        let trendObserver = null;
+
+        function setTrendPeriod(period) {
+            currentTrendPeriod = period;
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            updateTrendChart();
+        }
+
+        function tryPremiumFeature(feature) {
+            alert('🌟 Premium Feature Locked!\n\nUnlock advanced analytics:\n• Weekly trends\n• Monthly patterns\n• Yearly overview\n• Advanced insights\n\nUpgrade to Premium to access these features!\n\nPremium coming soon!');
+        }
+
+        function updateTrendChart() {
+            const chartCanvas = document.getElementById('trendChart');
+            
+            // Setup Intersection Observer for scroll animation
+            if (trendObserver) {
+                trendObserver.disconnect();
+            }
+
+            trendObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        renderTrendChart();
+                        trendObserver.disconnect(); // Only animate once per page load
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            trendObserver.observe(chartCanvas);
+        }
+
+        function renderTrendChart() {
+            const userData = appData.users[appData.currentUser];
+            const chartCanvas = document.getElementById('trendChart');
+            const noDataMsg = document.getElementById('trendNoData');
+            
+            if (trendChart) {
+                trendChart.destroy();
+                trendChart = null;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Collect data for last 7 days
+            const labels = [];
+            const data = [];
+            const dayTagsMap = [];
+
+            // Loop 6 days ago -> today (7 days total)
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                const dateStr = `${y}-${m}-${d}`;
+                
+                // Labels
+                if (i === 0) labels.push('Today');
+                else labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                
+                // Data
+                const dayTags = userData.entries[dateStr] || [];
+                data.push(dayTags.length);
+                
+                // Store actual tag info used that day IN ORDER
+                const dayTagInfo = dayTags.map(tagId => {
+                    const t = userData.tags.find(tag => tag.id === tagId);
+                    return t ? { color: t.color, name: t.name } : null;
+                }).filter(t => t !== null);
+                dayTagsMap.push(dayTagInfo);
+            }
+
+            const hasData = data.some(count => count > 0);
+            if (!hasData) {
+                chartCanvas.style.display = 'none';
+                noDataMsg.style.display = 'block';
+                return;
+            }
+
+            chartCanvas.style.display = 'block';
+            noDataMsg.style.display = 'none';
+
+            // Create single dataset
+            const dataset = {
+                label: 'Activities',
+                data: data,
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBorderWidth: 2,
+                pointBorderColor: document.body.classList.contains('dark') ? '#1a1a1a' : '#ffffff',
+                pointBackgroundColor: data.map((count, i) => {
+                    return dayTagsMap[i].length > 0 ? dayTagsMap[i][0].color : '#9ca3af';
+                }),
+                segment: {
+                    borderColor: (ctx) => {
+                        // Create a gradient with hard stops for each tag
+                        if (!ctx.p0.parsed || !ctx.p1.parsed) return 'transparent';
+                        
+                        const dayIdx = ctx.p0DataIndex;
+                        const dayTags = dayTagsMap[dayIdx];
+                        
+                        if (!dayTags || dayTags.length === 0) {
+                            return document.body.classList.contains('dark') ? '#404040' : '#e5e7eb';
+                        }
+                        
+                        const gradient = ctx.chart.ctx.createLinearGradient(ctx.p0.x, ctx.p0.y, ctx.p1.x, ctx.p1.y);
+                        
+                        // Divide the segment into N distinct colored blocks
+                        const step = 1 / dayTags.length;
+                        dayTags.forEach((tag, i) => {
+                            // Hard stop approach for solid blocks
+                            gradient.addColorStop(i * step, tag.color);
+                            gradient.addColorStop((i + 1) * step, tag.color);
+                        });
+                        
+                        return gradient;
+                    }
+                }
+            };
+
+            trendChart = new Chart(chartCanvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [dataset]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 500, // Faster animation
+                        easing: 'linear' // Simple linear animation for speed
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: document.body.classList.contains('dark') ? '#e0e0e0' : '#1f2937'
+                            },
+                            grid: {
+                                color: document.body.classList.contains('dark') ? '#404040' : '#e5e7eb'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.body.classList.contains('dark') ? '#e0e0e0' : '#1f2937'
+                            },
+                            grid: {
+                                color: document.body.classList.contains('dark') ? '#404040' : '#e5e7eb'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const dayIdx = context.dataIndex;
+                                    const dayTags = dayTagsMap[dayIdx];
+                                    if (dayTags.length > 0) {
+                                        return [
+                                            `${dayTags.length} activities`,
+                                            `Tags: ${dayTags.map(t => t.name).join(', ')}`
+                                        ];
+                                    }
+                                    return 'No activities';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
         
         function getDateRange(period) {
@@ -1572,24 +1983,20 @@
             
             switch(period) {
                 case 'daily':
-                    // Today only
                     start = new Date(today);
                     end = new Date(today);
                     break;
                 case 'weekly':
-                    // This week (Sunday to Saturday)
                     start = new Date(today);
                     start.setDate(today.getDate() - today.getDay());
                     end = new Date(start);
                     end.setDate(start.getDate() + 6);
                     break;
                 case 'monthly':
-                    // This month
                     start = new Date(today.getFullYear(), today.getMonth(), 1);
                     end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                     break;
                 case 'yearly':
-                    // This year
                     start = new Date(today.getFullYear(), 0, 1);
                     end = new Date(today.getFullYear(), 11, 31);
                     break;
@@ -1597,6 +2004,8 @@
             
             return { start, end };
         }
+        
+
         
         // Streaks
         function updateStreaks() {
@@ -1647,10 +2056,6 @@
                 let checkDate = new Date(today);
                 
                 while (true) {
-                    const dateStr = checkDate.toISOString().split('T')[0];
-                    // We need to match the storage format YYYY-MM-DD which is local
-                    // toISOString gives UTC. This might break streaks for late-night users.
-                    // Let's use correct local string construction
                     const y = checkDate.getFullYear();
                     const m = String(checkDate.getMonth() + 1).padStart(2, '0');
                     const d = String(checkDate.getDate()).padStart(2, '0');
@@ -1869,12 +2274,16 @@
             const isDark = document.getElementById('darkModeToggle').checked;
             document.body.classList.toggle('dark', isDark);
             localStorage.setItem('darkMode', isDark);
-            renderCalendar(); // Refresh calendar with new theme
+            renderCalendar();
+            
+            // Update charts if they exist
+            if (statsChart) {
+                updateStats();
+            }
         }
         
         function exportData() {
             const userData = appData.users[appData.currentUser];
-            // Include password hash so account can be fully restored on another device
             const exportData = {
                 username: appData.currentUser,
                 passwordHash: userData.passwordHash, 
@@ -1886,13 +2295,11 @@
             
             const dataStr = JSON.stringify(exportData, null, 2);
             
-            // Copy to clipboard option
             if (confirm('Do you want to copy the data code to clipboard? (Useful for pasting on another device)')) {
                 navigator.clipboard.writeText(dataStr).then(() => {
-                    alert('Data copied to clipboard! specific Open the app on your other device, go to Login > Transfer Data, and paste it there.');
+                    alert('Data copied to clipboard! Open the app on your other device, go to Login > Transfer Data, and paste it there.');
                 });
             } else {
-                // Download file
                 const dataBlob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(dataBlob);
                 
@@ -1907,10 +2314,8 @@
         
         // Data persistence
         async function saveData() {
-            // Always save to localStorage first (offline fallback)
             localStorage.setItem('activityTrackerData', JSON.stringify(appData));
             
-            // If user is logged in, sync to cloud
             if (appData.currentUser && appData.sessionToken) {
                 try {
                     const userData = appData.users[appData.currentUser];
@@ -1929,11 +2334,9 @@
                         })
                     });
                     
-                    // Silently sync - don't show errors to user
                     console.log('✅ Data synced to cloud');
                 } catch (error) {
                     console.warn('⚠️ Cloud sync failed, data saved locally:', error);
-                    // Data is still safe in localStorage
                 }
             }
         }
