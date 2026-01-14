@@ -675,10 +675,18 @@
     </div>
 
     <script>
+        // ========================================
+        // CLOUDFLARE WORKER API CONFIGURATION
+        // ========================================
+        // Replace this with your actual Cloudflare Worker URL after deployment
+        // Follow the SETUP-GUIDE.md to deploy the worker and get this URL
+        const API_URL = 'https://routlin.sm9developer.workers.dev';
+        
         // Data structure
         let appData = {
             users: {},
-            currentUser: null
+            currentUser: null,
+            sessionToken: null
         };
         
         // Predefined colors (10 distinct colors)
@@ -752,7 +760,7 @@
         }
         
         async function signup() {
-            const username = document.getElementById('signupUsername').value.trim();
+            const username = document.getElementById('signupUsername').value.trim().toLowerCase();
             const password = document.getElementById('signupPassword').value;
             const confirmPassword = document.getElementById('signupConfirmPassword').value;
             const authError = document.getElementById('authError');
@@ -769,30 +777,49 @@
                 return;
             }
             
-            if (appData.users[username]) {
-                authError.textContent = 'Username already exists';
+            if (username.length < 3) {
+                authError.textContent = 'Username must be at least 3 characters';
                 authError.style.display = 'block';
                 return;
             }
             
-            const passwordHash = await hashPassword(password);
+            if (password.length < 4) {
+                authError.textContent = 'Password must be at least 4 characters';
+                authError.style.display = 'block';
+                return;
+            }
             
-            appData.users[username] = {
-                passwordHash: passwordHash,
-                tags: [],
-                entries: {},
-                goals: []
-            };
-            
-            saveData();
-            
-            authError.style.display = 'none';
-            document.getElementById('signupUsername').value = '';
-            document.getElementById('signupPassword').value = '';
-            document.getElementById('signupConfirmPassword').value = '';
-            
-            alert('Account created successfully! Please login.');
-            toggleAuthForm();
+            try {
+                authError.textContent = 'Creating account...';
+                authError.className = 'mt-4 p-3 bg-blue-100 text-blue-700 rounded-lg text-sm';
+                authError.style.display = 'block';
+                
+                const response = await fetch(`${API_URL}/api/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Signup failed');
+                }
+                
+                // Success!
+                authError.style.display = 'none';
+                document.getElementById('signupUsername').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('signupConfirmPassword').value = '';
+                
+                alert('✅ Account created successfully! Please login.');
+                toggleAuthForm();
+                
+            } catch (error) {
+                authError.textContent = error.message || 'Failed to create account. Please try again.';
+                authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
+                authError.style.display = 'block';
+            }
         }
 
         function togglePassword(inputId, btn) {
@@ -812,7 +839,7 @@
         }
         
         async function login() {
-            const username = document.getElementById('loginUsername').value.trim();
+            const username = document.getElementById('loginUsername').value.trim().toLowerCase();
             const password = document.getElementById('loginPassword').value;
             const authError = document.getElementById('authError');
             
@@ -822,23 +849,43 @@
                 return;
             }
             
-            if (!appData.users[username]) {
-                authError.textContent = 'Invalid username or password';
+            try {
+                authError.textContent = 'Logging in...';
+                authError.className = 'mt-4 p-3 bg-blue-100 text-blue-700 rounded-lg text-sm';
                 authError.style.display = 'block';
-                return;
-            }
-            
-            const passwordHash = await hashPassword(password);
-            
-            if (appData.users[username].passwordHash !== passwordHash) {
-                authError.textContent = 'Invalid username or password';
+                
+                const response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                // Success! Store session and user data
+                appData.currentUser = data.username;
+                appData.sessionToken = data.sessionToken;
+                appData.users[data.username] = {
+                    tags: data.userData.tags || [],
+                    entries: data.userData.entries || {},
+                    goals: data.userData.goals || []
+                };
+                
+                saveData();
+                authError.style.display = 'none';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                showMainApp();
+                
+            } catch (error) {
+                authError.textContent = error.message || 'Failed to login. Please check your credentials.';
+                authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
                 authError.style.display = 'block';
-                return;
             }
-            
-            appData.currentUser = username;
-            saveData();
-            showMainApp();
         }
         
         function logout() {
@@ -1786,22 +1833,36 @@
                 return;
             }
             
-            const userData = appData.users[appData.currentUser];
-            const currentHash = await hashPassword(currentPassword);
-            
-            if (currentHash !== userData.passwordHash) {
-                alert('Current password is incorrect');
+            if (newPassword.length < 4) {
+                alert('New password must be at least 4 characters');
                 return;
             }
             
-            const newHash = await hashPassword(newPassword);
-            userData.passwordHash = newHash;
-            saveData();
-            
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            
-            alert('Password changed successfully!');
+            try {
+                const response = await fetch(`${API_URL}/api/change-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: appData.currentUser,
+                        currentPassword: currentPassword,
+                        newPassword: newPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to change password');
+                }
+                
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                
+                alert('✅ Password changed successfully!');
+                
+            } catch (error) {
+                alert('❌ ' + (error.message || 'Failed to change password. Please try again.'));
+            }
         }
         
         function toggleDarkMode() {
@@ -1813,8 +1874,10 @@
         
         function exportData() {
             const userData = appData.users[appData.currentUser];
+            // Include password hash so account can be fully restored on another device
             const exportData = {
                 username: appData.currentUser,
+                passwordHash: userData.passwordHash, 
                 tags: userData.tags,
                 entries: userData.entries,
                 goals: userData.goals,
@@ -1822,20 +1885,57 @@
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
             
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `activity-tracker-${appData.currentUser}-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
+            // Copy to clipboard option
+            if (confirm('Do you want to copy the data code to clipboard? (Useful for pasting on another device)')) {
+                navigator.clipboard.writeText(dataStr).then(() => {
+                    alert('Data copied to clipboard! specific Open the app on your other device, go to Login > Transfer Data, and paste it there.');
+                });
+            } else {
+                // Download file
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `activity-tracker-${appData.currentUser}-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+            }
         }
         
         // Data persistence
-        function saveData() {
+        async function saveData() {
+            // Always save to localStorage first (offline fallback)
             localStorage.setItem('activityTrackerData', JSON.stringify(appData));
+            
+            // If user is logged in, sync to cloud
+            if (appData.currentUser && appData.sessionToken) {
+                try {
+                    const userData = appData.users[appData.currentUser];
+                    
+                    await fetch(`${API_URL}/api/sync`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: appData.currentUser,
+                            sessionToken: appData.sessionToken,
+                            userData: {
+                                tags: userData.tags,
+                                entries: userData.entries,
+                                goals: userData.goals
+                            }
+                        })
+                    });
+                    
+                    // Silently sync - don't show errors to user
+                    console.log('✅ Data synced to cloud');
+                } catch (error) {
+                    console.warn('⚠️ Cloud sync failed, data saved locally:', error);
+                    // Data is still safe in localStorage
+                }
+            }
         }
         
         function loadData() {
