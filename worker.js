@@ -1,49 +1,50 @@
+// CORS headers for cross-origin requests
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json'
-};
-
-// Handle OPTIONS preflight requests
-function handleOptions() {
+  };
+  
+  // Handle OPTIONS preflight requests
+  function handleOptions() {
     return new Response(null, { headers: corsHeaders });
-}
-
-// Convert string to ArrayBuffer
-function str2ab(str) {
+  }
+  
+  // Convert string to ArrayBuffer
+  function str2ab(str) {
     const encoder = new TextEncoder();
     return encoder.encode(str);
-}
-
-// Convert ArrayBuffer to string
-function ab2str(buf) {
+  }
+  
+  // Convert ArrayBuffer to string
+  function ab2str(buf) {
     const decoder = new TextDecoder();
     return decoder.decode(buf);
-}
-
-// Convert ArrayBuffer to Base64
-function ab2base64(buf) {
+  }
+  
+  // Convert ArrayBuffer to Base64
+  function ab2base64(buf) {
     let binary = '';
     const bytes = new Uint8Array(buf);
     for (let i = 0; i < bytes.byteLength; i++) {
         binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
-}
-
-// Convert Base64 to ArrayBuffer
-function base642ab(base64) {
+  }
+  
+  // Convert Base64 to ArrayBuffer
+  function base642ab(base64) {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
         bytes[i] = binary.charCodeAt(i);
     }
     return bytes.buffer;
-}
-
-// Derive encryption key from secret
-async function getEncryptionKey(secret) {
+  }
+  
+  // Derive encryption key from secret
+  async function getEncryptionKey(secret) {
     const keyMaterial = await crypto.subtle.importKey(
         'raw',
         str2ab(secret),
@@ -64,10 +65,10 @@ async function getEncryptionKey(secret) {
         false,
         ['encrypt', 'decrypt']
     );
-}
-
-// Encrypt data
-async function encryptData(data, secret) {
+  }
+  
+  // Encrypt data
+  async function encryptData(data, secret) {
     const key = await getEncryptionKey(secret);
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encoded = str2ab(JSON.stringify(data));
@@ -84,10 +85,10 @@ async function encryptData(data, secret) {
     combined.set(new Uint8Array(encrypted), iv.length);
     
     return ab2base64(combined.buffer);
-}
-
-// Decrypt data
-async function decryptData(encryptedBase64, secret) {
+  }
+  
+  // Decrypt data
+  async function decryptData(encryptedBase64, secret) {
     try {
         const key = await getEncryptionKey(secret);
         const combined = new Uint8Array(base642ab(encryptedBase64));
@@ -106,17 +107,17 @@ async function decryptData(encryptedBase64, secret) {
         console.error('Decryption failed:', e);
         return null;
     }
-}
-
-// Hash password (for additional security)
-async function hashPassword(password) {
+  }
+  
+  // Hash password (for additional security)
+  async function hashPassword(password) {
     const encoded = str2ab(password + 'activity-tracker-pepper-v1');
     const hash = await crypto.subtle.digest('SHA-256', encoded);
     return ab2base64(hash);
-}
-
-// Fetch data from GitHub Gist
-async function fetchGistData(env) {
+  }
+  
+  // Fetch data from GitHub Gist
+  async function fetchGistData(env) {
     const response = await fetch(
         `https://api.github.com/gists/${env.GIST_ID}`,
         {
@@ -147,10 +148,10 @@ async function fetchGistData(env) {
     } catch {
         return {};
     }
-}
-
-// Save data to GitHub Gist
-async function saveGistData(data, env) {
+  }
+  
+  // Save data to GitHub Gist
+  async function saveGistData(data, env) {
     // Encrypt the entire database
     const encrypted = 'ENC:' + await encryptData(data, env.ENCRYPTION_KEY);
     
@@ -180,10 +181,10 @@ async function saveGistData(data, env) {
     }
     
     return true;
-}
-
-// Main request handler
-export default {
+  }
+  
+  // Main request handler
+  export default {
     async fetch(request, env) {
         // Handle CORS preflight
         if (request.method === 'OPTIONS') {
@@ -412,6 +413,45 @@ export default {
                 );
             }
             
+            // DELETE ACCOUNT
+            if (path === '/api/delete-account' && request.method === 'POST') {
+                const { username, sessionToken } = await request.json();
+                
+                if (!username) {
+                    return new Response(
+                        JSON.stringify({ success: false, error: 'Username required' }),
+                        { status: 400, headers: corsHeaders }
+                    );
+                }
+                
+                const normalizedUsername = username.toLowerCase().trim();
+                
+                // Fetch users
+                const users = await fetchGistData(env);
+                
+                // Check if user exists
+                if (!users[normalizedUsername]) {
+                    return new Response(
+                        JSON.stringify({ success: false, error: 'User not found' }),
+                        { status: 404, headers: corsHeaders }
+                    );
+                }
+                
+                // Delete user from database
+                delete users[normalizedUsername];
+                
+                // Save updated database (without the deleted user)
+                await saveGistData(users, env);
+                
+                return new Response(
+                    JSON.stringify({ 
+                        success: true, 
+                        message: 'Account permanently deleted from cloud storage' 
+                    }),
+                    { headers: corsHeaders }
+                );
+            }
+            
             // 404 for unknown routes
             return new Response(
                 JSON.stringify({ error: 'Not found' }),
@@ -426,4 +466,4 @@ export default {
             );
         }
     }
-};
+  };
