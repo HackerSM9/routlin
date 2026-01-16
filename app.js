@@ -50,8 +50,19 @@ function init() {
         darkModeToggle.checked = document.body.classList.contains('dark');
     }
 
-    if (appData.currentUser) {
+    // Check if user session exists
+    if (appData.currentUser && appData.sessionToken) {
+        console.log('✅ Session found for user:', appData.currentUser);
         showMainApp();
+    } else {
+        console.log('❌ No active session found');
+        // Clear any partial data
+        appData = {
+            users: {},
+            currentUser: null,
+            sessionToken: null
+        };
+        localStorage.removeItem('activityTrackerData');
     }
 }
 
@@ -89,24 +100,28 @@ async function signup() {
     
     if (!username || !password || !confirmPassword) {
         authError.textContent = 'Please fill in all fields';
+        authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
         authError.style.display = 'block';
         return;
     }
     
     if (password !== confirmPassword) {
         authError.textContent = 'Passwords do not match';
+        authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
         authError.style.display = 'block';
         return;
     }
     
     if (username.length < 3) {
         authError.textContent = 'Username must be at least 3 characters';
+        authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
         authError.style.display = 'block';
         return;
     }
     
     if (password.length < 4) {
         authError.textContent = 'Password must be at least 4 characters';
+        authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
         authError.style.display = 'block';
         return;
     }
@@ -128,13 +143,34 @@ async function signup() {
             throw new Error(data.error || 'Signup failed');
         }
         
+        // Auto-login after signup
+        appData.currentUser = data.username;
+        appData.sessionToken = data.sessionToken;
+        appData.users[data.username] = {
+            tags: data.userData.tags || [],
+            entries: data.userData.entries || {},
+            goals: data.userData.goals || []
+        };
+        
+        // Save to localStorage
+        saveData();
+        
+        // Verify save
+        const verification = localStorage.getItem('activityTrackerData');
+        if (!verification) {
+            console.error('⚠️ Failed to save to localStorage!');
+            alert('Warning: Session may not persist after refresh. Please check browser settings.');
+        } else {
+            console.log('✅ Account created and session saved');
+        }
+        
         authError.style.display = 'none';
         document.getElementById('signupUsername').value = '';
         document.getElementById('signupPassword').value = '';
         document.getElementById('signupConfirmPassword').value = '';
         
-        alert('✅ Account created successfully! Please login.');
-        toggleAuthForm();
+        // Show main app after signup
+        showMainApp();
         
     } catch (error) {
         authError.textContent = error.message || 'Failed to create account. Please try again.';
@@ -163,6 +199,7 @@ async function login() {
     
     if (!username || !password) {
         authError.textContent = 'Please fill in all fields';
+        authError.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm';
         authError.style.display = 'block';
         return;
     }
@@ -184,6 +221,7 @@ async function login() {
             throw new Error(data.error || 'Login failed');
         }
         
+        // Store session data
         appData.currentUser = data.username;
         appData.sessionToken = data.sessionToken;
         appData.users[data.username] = {
@@ -192,7 +230,18 @@ async function login() {
             goals: data.userData.goals || []
         };
         
+        // Save to localStorage immediately
         saveData();
+        
+        // Verify save worked
+        const verification = localStorage.getItem('activityTrackerData');
+        if (!verification) {
+            console.error('⚠️ Failed to save to localStorage!');
+            alert('Warning: Session may not persist after refresh. Please check browser settings.');
+        } else {
+            console.log('✅ Session saved successfully');
+        }
+        
         authError.style.display = 'none';
         document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
@@ -211,11 +260,15 @@ function logout() {
     }
     
     appData.currentUser = null;
-    saveData();
+    appData.sessionToken = null;
+    localStorage.removeItem('activityTrackerData');
+    
     document.getElementById('authScreen').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginUsername').value = '';
     document.getElementById('loginPassword').value = '';
+    
+    console.log('✅ Logged out successfully');
 }
 
 async function deleteAccount() {
@@ -1428,7 +1481,6 @@ function exportData() {
     const userData = appData.users[appData.currentUser];
     const exportData = {
         username: appData.currentUser,
-        passwordHash: userData.passwordHash, 
         tags: userData.tags,
         entries: userData.entries,
         goals: userData.goals,
@@ -1486,7 +1538,13 @@ async function saveData() {
 function loadData() {
     const savedData = localStorage.getItem('activityTrackerData');
     if (savedData) {
-        appData = JSON.parse(savedData);
+        try {
+            appData = JSON.parse(savedData);
+            console.log('📦 Loaded data from localStorage');
+        } catch (error) {
+            console.error('❌ Failed to parse saved data:', error);
+            localStorage.removeItem('activityTrackerData');
+        }
     }
 }
 
