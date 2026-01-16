@@ -6,6 +6,63 @@ import { API_URL, appData, setAppData } from './config.js';
 import { saveData } from './data.js';
 import { showMainApp } from './app.js';
 
+// Initialize auth event listeners (call this on page load)
+export function initAuthListeners() {
+    // Login form - Enter key handling
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    
+    if (loginUsername) {
+        loginUsername.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loginPassword.focus();
+            }
+        });
+    }
+    
+    if (loginPassword) {
+        loginPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                login();
+            }
+        });
+    }
+    
+    // Signup form - Enter key handling
+    const signupUsername = document.getElementById('signupUsername');
+    const signupPassword = document.getElementById('signupPassword');
+    const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+    
+    if (signupUsername) {
+        signupUsername.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                signupPassword.focus();
+            }
+        });
+    }
+    
+    if (signupPassword) {
+        signupPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                signupConfirmPassword.focus();
+            }
+        });
+    }
+    
+    if (signupConfirmPassword) {
+        signupConfirmPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                signup();
+            }
+        });
+    }
+}
+
 // Toggle between login and signup forms
 export function toggleAuthForm() {
     const loginForm = document.getElementById('loginForm');
