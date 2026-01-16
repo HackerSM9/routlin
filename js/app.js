@@ -6,7 +6,7 @@
 import { appData, setAppData } from './config.js';
 import { togglePassword } from './utils.js';
 import { loadData, saveData } from './data.js';
-import { toggleAuthForm, signup, login, logout, deleteAccount } from './auth.js';
+import { toggleAuthForm, signup, login, logout, deleteAccount, initAuthListeners } from './auth.js';
 import { renderCalendar, changeMonth, openTagSelectionModal, closeTagSelectionModal, saveTagSelection } from './calendar.js';
 import { renderTags, openAddTagModal, closeAddTagModal, saveNewTag, openEditTagModal, closeEditTagModal, saveEditTag, deleteTag, tryCustomColor } from './tags.js';
 import { updateStats, setTrendPeriod, tryPremiumFeature } from './stats.js';
@@ -16,6 +16,9 @@ import { changePassword, toggleDarkMode, exportData } from './profile.js';
 // Initialize the app
 function init() {
     loadData();
+    
+    // Initialize auth keyboard listeners
+    initAuthListeners();
     
     // Default to Dark Mode if not set
     const savedDarkMode = localStorage.getItem('darkMode');
