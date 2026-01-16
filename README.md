@@ -1,2 +1,2 @@
-# routlin
-Daily Activity/Habit Tracker App
+# Routlin
+Daily Routine/Activity/Habit Tracker App
