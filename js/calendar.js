@@ -5,6 +5,7 @@
 import { appData, currentDate, setCurrentDate, selectedDateForModal, setSelectedDateForModal } from './config.js';
 import { saveData } from './data.js';
 import { updateStats } from './stats.js';
+import { getAllPeriodDates } from './health.js';
 
 // Render calendar grid
 export function renderCalendar() {
