@@ -1,3 +1,4 @@
+/* ==== GLOBAL ==== */
 * {
     margin: 0;
     padding: 0;
@@ -14,6 +15,7 @@ body {
     color: #e0e0e0;
 }
 
+/* ==== CALENDAR ==== */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -100,6 +102,7 @@ body {
     color: #3b82f6;
 }
 
+/* ==== MODAL ==== */
 .modal {
     display: none;
     position: fixed;
@@ -132,6 +135,7 @@ body {
     background: #2a2a2a;
 }
 
+/* ==== TAG CHECKBOX ==== */
 .tag-checkbox {
     display: flex;
     align-items: center;
@@ -150,6 +154,7 @@ body {
     background-color: #3a3a3a;
 }
 
+/* ==== COLOR PICKER ==== */
 .color-picker-container {
     display: flex;
     gap: 8px;
@@ -204,6 +209,7 @@ body {
     text-transform: uppercase;
 }
 
+/* ==== CUSTOM COLOR INPUT ==== */
 .custom-color-input {
     width: 100%;
     padding: 8px;
@@ -230,6 +236,7 @@ body {
     cursor: not-allowed;
 }
 
+/* ==== CONTENT AREA ==== */
 .content-area {
     padding: 20px;
     padding-bottom: 80px;
@@ -237,6 +244,7 @@ body {
     margin: 0 auto;
 }
 
+/* ==== TABS ==== */
 .tab-content {
     display: none;
 }
@@ -282,7 +290,8 @@ body {
     background: #dc2626;
 }
 
-input, select {
+/* ==== INPUT ==== */
+input, select, textarea {
     width: 100%;
     padding: 10px;
     border: 1px solid #e5e7eb;
@@ -291,12 +300,13 @@ input, select {
     color: #1f2937;
 }
 
-.dark input, .dark select {
+.dark input, .dark select, .dark textarea {
     background: #3a3a3a;
     border-color: #404040;
     color: #e0e0e0;
 }
 
+/* ==== STATS CARD ==== */
 .stats-card {
     background: #f9fafb;
     padding: 20px;
@@ -308,6 +318,7 @@ input, select {
     background: #2a2a2a;
 }
 
+/* ==== STREAK BADGE ==== */
 .streak-badge {
     display: inline-flex;
     align-items: center;
@@ -325,6 +336,7 @@ input, select {
     color: #fef3c7;
 }
 
+/* ==== PROGRESS BAR ==== */
 .progress-bar {
     width: 100%;
     height: 12px;
@@ -344,6 +356,7 @@ input, select {
     transition: width 0.3s;
 }
 
+/* ==== PERIOD FILTER ==== */
 .period-filter {
     display: flex;
     gap: 8px;
@@ -390,6 +403,7 @@ input, select {
     cursor: not-allowed;
 }
 
+/* ==== CHART CONTAINER ==== */
 .chart-container {
     position: relative;
     min-height: 250px;
@@ -398,6 +412,7 @@ input, select {
     justify-content: center;
 }
 
+/* ==== PREMIUM LOCKED ==== */
 .btn-premium-locked {
     position: relative;
     opacity: 0.7;
@@ -409,4 +424,55 @@ input, select {
 .btn-premium-locked:hover {
     opacity: 0.7;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ==== KEYBOARD SHORTCUTS ==== */
+.kbd {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-family: monospace;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.dark .kbd {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+/* ==== SEARCH HIGHLIGHT ==== */
+input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ==== SMOOTH ANIMATIONS ==== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-card {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ==== MOBILE RESPONSIVE ==== */
+@media (max-width: 640px) {
+    .content-area {
+        padding: 15px;
+        padding-bottom: 80px;
+    }
+
+    .modal-content {
+        padding: 20px;
+        max-height: 85vh;
+    }
+
+    .calendar-day {
+        font-size: 14px;
+    }
 }
