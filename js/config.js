@@ -43,6 +43,7 @@ export let trendChart = null;
 export let currentTrendPeriod = '7days';
 export let editingTagId = null;
 export let trendObserver = null;
+export let healthInitialized = false;
 
 // Setters for global state
 export function setCurrentDate(date) {
@@ -75,4 +76,8 @@ export function setEditingTagId(id) {
 
 export function setTrendObserver(observer) {
     trendObserver = observer;
+}
+
+export function setHealthInitialized(value) {
+    healthInitialized = value;
 }
