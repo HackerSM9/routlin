@@ -11,7 +11,7 @@ import { renderCalendar, changeMonth, openTagSelectionModal, closeTagSelectionMo
 import { renderTags, openAddTagModal, closeAddTagModal, saveNewTag, openEditTagModal, closeEditTagModal, saveEditTag, deleteTag, tryCustomColor } from './tags.js';
 import { updateStats, setTrendPeriod, tryPremiumFeature } from './stats.js';
 import { openAddGoalModal, closeAddGoalModal, saveGoal, updateGoals, deleteGoal } from './goals.js';
-import { changePassword, toggleDarkMode, exportData, openImportModal, closeImportModal, importData } from './profile.js';
+import { changePassword, toggleDarkMode, exportData } from './profile.js';  // ✅ FIXED: Removed non-existent imports
 import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings } from './health.js';
 
 // Make functions globally accessible for onclick handlers
@@ -21,7 +21,6 @@ window.signup = signup;
 window.login = login;
 window.logout = logout;
 window.deleteAccount = deleteAccount;
-window.initAuthListeners = initAuthListeners;
 window.renderCalendar = renderCalendar;
 window.changeMonth = changeMonth;
 window.openTagSelectionModal = openTagSelectionModal;
@@ -47,9 +46,6 @@ window.deleteGoal = deleteGoal;
 window.changePassword = changePassword;
 window.toggleDarkMode = toggleDarkMode;
 window.exportData = exportData;
-window.openImportModal = openImportModal;
-window.closeImportModal = closeImportModal;
-window.importData = importData;
 window.openHealthSetup = openHealthSetup;
 window.closeHealthSetup = closeHealthSetup;
 window.saveHealthSetup = saveHealthSetup;
