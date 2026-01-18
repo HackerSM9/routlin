@@ -137,7 +137,8 @@ export async function signup() {
         appData.users[data.username] = {
             tags: data.userData.tags || [],
             entries: data.userData.entries || {},
-            goals: data.userData.goals || []
+            goals: data.userData.goals || [],
+            health: data.userData.health || null
         };
         
         saveData();
@@ -199,7 +200,8 @@ export async function login() {
         appData.users[data.username] = {
             tags: data.userData.tags || [],
             entries: data.userData.entries || {},
-            goals: data.userData.goals || []
+            goals: data.userData.goals || [],
+            health: data.userData.health || null
         };
         
         saveData();
@@ -244,7 +246,7 @@ export function logout() {
 
 // Delete account function
 export async function deleteAccount() {
-    const confirmation1 = confirm('⚠️ WARNING: Are you absolutely sure you want to DELETE your account?\n\nThis will permanently remove:\n• Your username\n• All your tags\n• All your activity data\n• All your goals\n• Everything associated with your account\n\nThis action CANNOT be undone!');
+    const confirmation1 = confirm('⚠️ WARNING: Are you absolutely sure you want to DELETE your account?\n\nThis will permanently remove:\n• Your username\n• All your tags\n• All your activity data\n• All your goals\n• All your health data\n• Everything associated with your account\n\nThis action CANNOT be undone!');
     
     if (!confirmation1) {
         return;
