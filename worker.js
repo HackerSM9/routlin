@@ -85,7 +85,32 @@ async function loadUserData(userId, db) {
   
   const goals = goalsResult.results || [];
   
-  return { tags, entries, goals };
+  // Load health data
+  const healthSettings = await db.prepare(
+      'SELECT avg_cycle_length, avg_period_duration, last_period_start FROM health_settings WHERE user_id = ?'
+  ).bind(userId).first();
+  
+  const periodEntriesResult = await db.prepare(
+      'SELECT entry_id, start_date, end_date, duration, cycle_length FROM period_entries WHERE user_id = ? ORDER BY start_date DESC'
+  ).bind(userId).all();
+  
+  let health = null;
+  if (healthSettings) {
+      health = {
+          avgCycleLength: healthSettings.avg_cycle_length,
+          avgPeriodDuration: healthSettings.avg_period_duration,
+          lastPeriodStart: healthSettings.last_period_start,
+          entries: (periodEntriesResult.results || []).map(e => ({
+              id: e.entry_id,
+              startDate: e.start_date,
+              endDate: e.end_date,
+              duration: e.duration,
+              cycleLength: e.cycle_length
+          }))
+      };
+  }
+  
+  return { tags, entries, goals, health };
 }
 
 // ==================== SIGNUP ====================
@@ -144,7 +169,8 @@ async function handleSignup(request, db) {
           userData: {
               tags: [],
               entries: {},
-              goals: []
+              goals: [],
+              health: null
           }
       });
       
@@ -196,7 +222,7 @@ async function handleLogin(request, db) {
           'INSERT INTO sessions (user_id, token, created_at, expires_at) VALUES (?, ?, ?, ?)'
       ).bind(user.id, sessionToken, now, expiresAt).run();
       
-      // Load user data
+      // Load user data (including health)
       const userData = await loadUserData(user.id, db);
       
       return jsonResponse({
@@ -330,9 +356,93 @@ async function handleSync(request, db) {
           }
       }
       
+      // SYNC HEALTH DATA
+      if (userData.health) {
+          const health = userData.health;
+          
+          // Check if health settings exist
+          const existingHealth = await db.prepare(
+              'SELECT id FROM health_settings WHERE user_id = ?'
+          ).bind(userId).first();
+          
+          if (existingHealth) {
+              // Update existing health settings
+              await db.prepare(
+                  'UPDATE health_settings SET avg_cycle_length = ?, avg_period_duration = ?, last_period_start = ?, updated_at = ? WHERE user_id = ?'
+              ).bind(
+                  health.avgCycleLength,
+                  health.avgPeriodDuration,
+                  health.lastPeriodStart,
+                  now,
+                  userId
+              ).run();
+          } else {
+              // Insert new health settings
+              await db.prepare(
+                  'INSERT INTO health_settings (user_id, avg_cycle_length, avg_period_duration, last_period_start, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+              ).bind(
+                  userId,
+                  health.avgCycleLength,
+                  health.avgPeriodDuration,
+                  health.lastPeriodStart,
+                  now,
+                  now
+              ).run();
+          }
+          
+          // Sync period entries
+          if (health.entries && Array.isArray(health.entries)) {
+              // Get existing entry IDs
+              const existingEntriesResult = await db.prepare(
+                  'SELECT entry_id FROM period_entries WHERE user_id = ?'
+              ).bind(userId).all();
+              
+              const existingEntryIds = new Set((existingEntriesResult.results || []).map(e => e.entry_id));
+              const newEntryIds = new Set(health.entries.map(e => e.id));
+              
+              // Delete removed entries
+              for (const entryId of existingEntryIds) {
+                  if (!newEntryIds.has(entryId)) {
+                      await db.prepare('DELETE FROM period_entries WHERE user_id = ? AND entry_id = ?')
+                          .bind(userId, entryId).run();
+                  }
+              }
+              
+              // Insert or update entries
+              for (const entry of health.entries) {
+                  if (existingEntryIds.has(entry.id)) {
+                      // Update existing entry
+                      await db.prepare(
+                          'UPDATE period_entries SET start_date = ?, end_date = ?, duration = ?, cycle_length = ? WHERE user_id = ? AND entry_id = ?'
+                      ).bind(
+                          entry.startDate,
+                          entry.endDate,
+                          entry.duration,
+                          entry.cycleLength,
+                          userId,
+                          entry.id
+                      ).run();
+                  } else {
+                      // Insert new entry
+                      await db.prepare(
+                          'INSERT INTO period_entries (user_id, entry_id, start_date, end_date, duration, cycle_length, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                      ).bind(
+                          userId,
+                          entry.id,
+                          entry.startDate,
+                          entry.endDate,
+                          entry.duration,
+                          entry.cycleLength,
+                          now
+                      ).run();
+                  }
+              }
+          }
+      }
+      
       return jsonResponse({
           success: true,
-          message: 'Data synced successfully'
+          message: 'Data synced successfully (including health data)'
       });
       
   } catch (error) {
@@ -407,7 +517,7 @@ async function handleDeleteAccount(request, db) {
           return errorResponse('User not found', 404);
       }
       
-      // Delete user (cascades to tags, entries, goals, sessions)
+      // Delete user (cascades to tags, entries, goals, sessions, health data)
       await db.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
       
       return jsonResponse({
