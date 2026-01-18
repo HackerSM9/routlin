@@ -21,12 +21,13 @@ export async function saveData() {
                     userData: {
                         tags: userData.tags,
                         entries: userData.entries,
-                        goals: userData.goals
+                        goals: userData.goals,
+                        health: userData.health || null
                     }
                 })
             });
             
-            console.log('✅ Data synced to cloud');
+            console.log('✅ Data synced to cloud (including health data)');
         } catch (error) {
             console.warn('⚠️ Cloud sync failed, data saved locally:', error);
         }
