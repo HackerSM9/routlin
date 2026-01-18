@@ -70,21 +70,18 @@ export function renderHealthTab() {
         </div>
 
         <div class="stats-card">
-            <h3 class="font-semibold mb-3">Settings</h3>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold">Settings</h3>
+                <button onclick="openEditHealthSettings()" class="btn btn-secondary" style="padding: 6px 16px; font-size: 14px;">Edit</button>
+            </div>
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-sm">Average Cycle</span>
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium">${health.avgCycleLength} days</span>
-                        <button onclick="openEditHealthSettings()" class="text-blue-500 text-sm">Edit</button>
-                    </div>
+                    <span class="font-medium">${health.avgCycleLength} days</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-sm">Period Duration</span>
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium">${health.avgPeriodDuration} days</span>
-                        <button onclick="openEditHealthSettings()" class="text-blue-500 text-sm">Edit</button>
-                    </div>
+                    <span class="font-medium">${health.avgPeriodDuration} days</span>
                 </div>
             </div>
         </div>
@@ -128,7 +125,7 @@ export function calculatePredictions() {
     const userData = appData.users[appData.currentUser];
     const health = userData.health;
     
-    if (!health.lastPeriodStart) return [];
+    if (!health || !health.lastPeriodStart) return [];
 
     const predictions = [];
     const lastPeriod = new Date(health.lastPeriodStart);
@@ -215,7 +212,10 @@ function renderPeriodHistory() {
             return `
                 <div class="flex justify-between items-center text-sm border-b pb-2">
                     <span>${start} - ${end}</span>
-                    <span class="text-gray-500">${duration} days</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500">${duration} days</span>
+                        <button onclick="openEditPeriodEntry('${entry.id}')" class="text-blue-500 text-xs">Edit</button>
+                    </div>
                 </div>
             `;
         })
@@ -349,6 +349,94 @@ export function logPeriod() {
 
     saveData();
     closeLogPeriodModal();
+    renderHealthTab();
+    renderCalendar();
+}
+
+// Open edit period entry modal
+export function openEditPeriodEntry(entryId) {
+    const userData = appData.users[appData.currentUser];
+    const health = userData.health;
+    const entry = health.entries.find(e => e.id === entryId);
+
+    if (!entry) return;
+
+    document.getElementById('editPeriodModal').classList.add('active');
+    document.getElementById('editPeriodEntryId').value = entryId;
+    document.getElementById('editPeriodStartDate').value = entry.startDate;
+    document.getElementById('editPeriodEndDate').value = entry.endDate;
+}
+
+// Close edit period entry modal
+export function closeEditPeriodEntry() {
+    document.getElementById('editPeriodModal').classList.remove('active');
+}
+
+// Save edited period entry
+export function saveEditPeriodEntry() {
+    const entryId = document.getElementById('editPeriodEntryId').value;
+    const startDate = document.getElementById('editPeriodStartDate').value;
+    const endDate = document.getElementById('editPeriodEndDate').value;
+
+    if (!startDate || !endDate) {
+        alert('Please fill in both dates');
+        return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end < start) {
+        alert('End date cannot be before start date');
+        return;
+    }
+
+    const duration = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    const userData = appData.users[appData.currentUser];
+    const health = userData.health;
+    const entry = health.entries.find(e => e.id === entryId);
+
+    if (!entry) return;
+
+    entry.startDate = startDate;
+    entry.endDate = endDate;
+    entry.duration = duration;
+
+    // Update lastPeriodStart if this is the most recent entry
+    const sortedEntries = health.entries.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    if (sortedEntries[0].id === entryId) {
+        health.lastPeriodStart = startDate;
+    }
+
+    saveData();
+    closeEditPeriodEntry();
+    renderHealthTab();
+    renderCalendar();
+}
+
+// Delete period entry
+export function deletePeriodEntry() {
+    if (!confirm('Are you sure you want to delete this period entry?')) {
+        return;
+    }
+
+    const entryId = document.getElementById('editPeriodEntryId').value;
+    const userData = appData.users[appData.currentUser];
+    const health = userData.health;
+
+    health.entries = health.entries.filter(e => e.id !== entryId);
+
+    // Update lastPeriodStart to the most recent entry
+    if (health.entries.length > 0) {
+        const sortedEntries = health.entries.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+        health.lastPeriodStart = sortedEntries[0].startDate;
+    } else {
+        health.lastPeriodStart = null;
+    }
+
+    saveData();
+    closeEditPeriodEntry();
     renderHealthTab();
     renderCalendar();
 }
