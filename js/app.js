@@ -11,8 +11,8 @@ import { renderCalendar, changeMonth, openTagSelectionModal, closeTagSelectionMo
 import { renderTags, openAddTagModal, closeAddTagModal, saveNewTag, openEditTagModal, closeEditTagModal, saveEditTag, deleteTag, tryCustomColor } from './tags.js';
 import { updateStats, setTrendPeriod, tryPremiumFeature } from './stats.js';
 import { openAddGoalModal, closeAddGoalModal, saveGoal, updateGoals, deleteGoal } from './goals.js';
-import { changePassword, toggleDarkMode, exportData } from './profile.js';  // ✅ FIXED: Removed non-existent imports
-import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings } from './health.js';
+import { changePassword, toggleDarkMode, exportData } from './profile.js';
+import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings, openEditPeriodEntry, closeEditPeriodEntry, saveEditPeriodEntry, deletePeriodEntry } from './health.js';
 
 // Make functions globally accessible for onclick handlers
 window.togglePassword = togglePassword;
@@ -55,6 +55,10 @@ window.logPeriod = logPeriod;
 window.openEditHealthSettings = openEditHealthSettings;
 window.closeEditHealthSettings = closeEditHealthSettings;
 window.saveHealthSettings = saveHealthSettings;
+window.openEditPeriodEntry = openEditPeriodEntry;
+window.closeEditPeriodEntry = closeEditPeriodEntry;
+window.saveEditPeriodEntry = saveEditPeriodEntry;
+window.deletePeriodEntry = deletePeriodEntry;
 
 // Initialize application
 function init() {
@@ -76,14 +80,12 @@ function init() {
         darkModeToggle.checked = document.body.classList.contains('dark');
     }
 
-    // ✅ FIX: Only show main app if session exists
-    // DO NOT call initHealthData() here - it needs a logged-in user!
+    // Only show main app if session exists
     if (appData.currentUser && appData.sessionToken) {
         console.log('✅ Session found for user:', appData.currentUser);
         showMainApp();
     } else {
         console.log('❌ No active session found');
-        // Clear any stale data
         setAppData({
             users: appData.users || {},
             currentUser: null,
@@ -102,7 +104,7 @@ export function showMainApp() {
     document.getElementById('darkModeToggle').checked = savedDarkMode;
     if (savedDarkMode) document.body.classList.add('dark');
 
-    // ✅ FIX: Initialize health data AFTER user is logged in
+    // Initialize health data AFTER user is logged in
     initHealthData();
 
     renderCalendar();
