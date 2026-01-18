@@ -5,7 +5,7 @@
 import { appData, currentDate, setCurrentDate, selectedDateForModal, setSelectedDateForModal } from './config.js';
 import { saveData } from './data.js';
 import { updateStats } from './stats.js';
-import { getAllPeriodDates } from './health.js';
+import { calculatePredictions } from './health.js';
 
 // Render calendar grid
 export function renderCalendar() {
@@ -20,6 +20,19 @@ export function renderCalendar() {
     
     const calendarDays = document.getElementById('calendarDays');
     calendarDays.innerHTML = '';
+    
+    // Get predicted period dates
+    const predictions = calculatePredictions();
+    const predictedDates = new Set();
+    
+    predictions.forEach(pred => {
+        const start = new Date(pred.start);
+        const end = new Date(pred.end);
+        
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            predictedDates.add(d.toISOString().split('T')[0]);
+        }
+    });
     
     for (let i = 0; i < firstDay; i++) {
         const emptyDay = document.createElement('div');
@@ -43,8 +56,17 @@ export function renderCalendar() {
         todayMidnight.setHours(0, 0, 0, 0);
         const isFuture = cellDate > todayMidnight;
         
+        // Check if this date is a predicted period date
+        const isPredictedPeriod = predictedDates.has(dateStr);
+        
         if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
             dayDiv.classList.add('today');
+        }
+        
+        // Add magenta border for predicted period dates (even if future)
+        if (isPredictedPeriod) {
+            dayDiv.style.border = '2px solid #ec4899'; // Magenta color
+            dayDiv.style.boxShadow = '0 0 4px rgba(236, 72, 153, 0.3)';
         }
         
         if (isFuture) {
