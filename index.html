@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#3b82f6">
     <title>Routlin - Routine Analysis</title>
     
-    <!-- PWA Support -->
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,16 +15,14 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <script type="module" src="js/app.js"></script>
+    <link rel="stylesheet" href="https://hackersm9.github.io/routlin/style.css">
+    <script type="module" src="https://hackersm9.github.io/routlin/js/app.js"></script>
 </head>
 <body>
-    <!-- ==================== AUTH SCREEN ==================== -->
     <div id="authScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
         <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-gray-700">
             <h1 class="text-3xl font-bold text-center mb-8 text-white">📊 Routlin</h1>
 
-            <!-- Sign Up Form (shown by default) -->
             <div id="signupForm">
                 <h2 class="text-xl font-semibold mb-4 text-white">Create Account</h2>
                 <div class="mb-4">
@@ -58,7 +55,6 @@
                 </p>
             </div>
 
-            <!-- Login Form (hidden by default) -->
             <div id="loginForm" style="display: none;">
                 <h2 class="text-xl font-semibold mb-4 text-white">Login</h2>
                 <div class="mb-4">
@@ -85,9 +81,7 @@
         </div>
     </div>
     
-    <!-- ==================== MAIN APP ==================== -->
     <div id="mainApp" style="display: none;">
-        <!-- Calendar Tab -->
         <div id="calendarTab" class="tab-content active content-area">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">Calendar</h2>
@@ -109,7 +103,6 @@
             <div id="calendarDays" class="calendar-grid"></div>
         </div>
         
-        <!-- Tags Tab -->
         <div id="tagsTab" class="tab-content content-area">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">My Tags</h2>
@@ -118,7 +111,6 @@
             <div id="tagsList"></div>
         </div>
         
-        <!-- Stats Tab -->
         <div id="statsTab" class="tab-content content-area">
             <h2 class="text-2xl font-bold mb-6">Statistics</h2>
             
@@ -149,7 +141,6 @@
             
             <div id="statsDetails"></div>
             
-            <!-- Activity Trend Line Graph -->
             <div class="stats-card">
                 <h3 class="font-semibold mb-4">Activity Trend 📈</h3>
                 <div class="period-filter">
@@ -188,13 +179,11 @@
             </div>
         </div>
 
-        <!-- Health Tab -->
         <div id="healthTab" class="tab-content content-area">
             <h2 class="text-2xl font-bold mb-6">🩷 Health</h2>
             <div id="healthContent"></div>
         </div>
         
-        <!-- Profile Tab -->
         <div id="profileTab" class="tab-content content-area">
             <h2 class="text-2xl font-bold mb-6">Profile</h2>
             
@@ -249,7 +238,6 @@
             </div>
         </div>
         
-        <!-- Bottom Navigation -->
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('calendar')">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,7 +272,6 @@
         </div>
     </div>
     
-    <!-- Tag Selection Modal -->
     <div id="tagSelectionModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -299,7 +286,6 @@
         </div>
     </div>
     
-    <!-- Add Tag Modal -->
     <div id="addTagModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -335,7 +321,6 @@
         </div>
     </div>
 
-    <!-- Edit Tag Modal -->
     <div id="editTagModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -372,7 +357,6 @@
         </div>
     </div>
     
-    <!-- Add Goal Modal -->
     <div id="addGoalModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -402,7 +386,6 @@
         </div>
     </div>
 
-    <!-- Health Setup Modal -->
     <div id="healthSetupModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -434,7 +417,6 @@
         </div>
     </div>
 
-    <!-- Log Period Modal -->
     <div id="logPeriodModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -460,7 +442,6 @@
         </div>
     </div>
 
-    <!-- Edit Health Settings Modal -->
     <div id="editHealthModal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -481,6 +462,28 @@
             <div class="flex gap-2">
                 <button onclick="saveHealthSettings()" class="btn btn-primary flex-1">Save Changes</button>
                 <button onclick="closeEditHealthSettings()" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editPeriodEntryModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">📅 Edit Period Entry</h3>
+                <button onclick="closeEditPeriodEntry()" class="text-2xl">&times;</button>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Start Date</label>
+                <input type="date" id="editPeriodStartDate" class="w-full">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">End Date</label>
+                <input type="date" id="editPeriodEndDate" class="w-full">
+            </div>
+            <input type="hidden" id="editPeriodEntryId">
+            <div class="flex gap-2">
+                <button onclick="saveEditPeriodEntry()" class="btn btn-primary flex-1">Save Changes</button>
+                <button onclick="closeEditPeriodEntry()" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
