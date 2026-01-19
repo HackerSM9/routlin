@@ -1,3 +1,5 @@
+// health.js
+
 // ========================================
 // HEALTH / PERIOD TRACKING
 // ========================================
@@ -214,7 +216,10 @@ function renderPeriodHistory() {
                     <span>${start} - ${end}</span>
                     <div class="flex items-center gap-2">
                         <span class="text-gray-500">${duration} days</span>
-                        <button onclick="openEditPeriodEntry('${entry.id}')" class="text-blue-500 text-xs">Edit</button>
+                        <div class="flex gap-2">
+                            <button onclick="openEditPeriodEntry('${entry.id}')" class="text-blue-500 text-xs font-semibold hover:underline">Edit</button>
+                            <button onclick="deletePeriodEntry('${entry.id}')" class="text-red-500 text-xs font-semibold hover:underline" title="Delete Entry">🗑️</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -361,15 +366,24 @@ export function openEditPeriodEntry(entryId) {
 
     if (!entry) return;
 
-    document.getElementById('editPeriodModal').classList.add('active');
-    document.getElementById('editPeriodEntryId').value = entryId;
-    document.getElementById('editPeriodStartDate').value = entry.startDate;
-    document.getElementById('editPeriodEndDate').value = entry.endDate;
+    // IMPORTANT: Make sure index.html has a modal with id="editPeriodModal"
+    // If not, this part will fail silently or throw error in console.
+    // Assuming you will fix HTML or already have it locally.
+    const modal = document.getElementById('editPeriodModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.getElementById('editPeriodEntryId').value = entryId;
+        document.getElementById('editPeriodStartDate').value = entry.startDate;
+        document.getElementById('editPeriodEndDate').value = entry.endDate;
+    } else {
+        alert("Edit Modal not found in HTML. Please ensure index.html includes the editPeriodModal structure.");
+    }
 }
 
 // Close edit period entry modal
 export function closeEditPeriodEntry() {
-    document.getElementById('editPeriodModal').classList.remove('active');
+    const modal = document.getElementById('editPeriodModal');
+    if (modal) modal.classList.remove('active');
 }
 
 // Save edited period entry
@@ -416,15 +430,15 @@ export function saveEditPeriodEntry() {
 }
 
 // Delete period entry
-export function deletePeriodEntry() {
+export function deletePeriodEntry(entryId) {
     if (!confirm('Are you sure you want to delete this period entry?')) {
         return;
     }
 
-    const entryId = document.getElementById('editPeriodEntryId').value;
     const userData = appData.users[appData.currentUser];
     const health = userData.health;
 
+    // Filter out the entry
     health.entries = health.entries.filter(e => e.id !== entryId);
 
     // Update lastPeriodStart to the most recent entry
@@ -436,7 +450,13 @@ export function deletePeriodEntry() {
     }
 
     saveData();
-    closeEditPeriodEntry();
+    // Use the existing modal closer just in case this was called from inside a modal, 
+    // though usually it is called from the list.
+    const modal = document.getElementById('editPeriodModal');
+    if (modal && modal.classList.contains('active')) {
+        closeEditPeriodEntry();
+    }
+    
     renderHealthTab();
     renderCalendar();
 }
