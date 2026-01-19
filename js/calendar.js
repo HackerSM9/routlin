@@ -1,3 +1,5 @@
+// calendar.js 
+
 // ========================================
 // CALENDAR FUNCTIONS
 // ========================================
@@ -33,6 +35,20 @@ export function renderCalendar() {
             predictedDates.add(d.toISOString().split('T')[0]);
         }
     });
+
+    // Get ACTUAL (Past) period dates
+    const actualPeriodDates = new Set();
+    const userData = appData.users[appData.currentUser];
+    
+    if (userData && userData.health && userData.health.entries) {
+        userData.health.entries.forEach(entry => {
+            const start = new Date(entry.startDate);
+            const end = new Date(entry.endDate);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                actualPeriodDates.add(d.toISOString().split('T')[0]);
+            }
+        });
+    }
     
     for (let i = 0; i < firstDay; i++) {
         const emptyDay = document.createElement('div');
@@ -40,7 +56,6 @@ export function renderCalendar() {
     }
     
     const today = new Date();
-    const userData = appData.users[appData.currentUser];
     
     for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
@@ -56,17 +71,23 @@ export function renderCalendar() {
         todayMidnight.setHours(0, 0, 0, 0);
         const isFuture = cellDate > todayMidnight;
         
-        // Check if this date is a predicted period date
+        // Check dates
         const isPredictedPeriod = predictedDates.has(dateStr);
+        const isActualPeriod = actualPeriodDates.has(dateStr);
         
         if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
             dayDiv.classList.add('today');
         }
         
-        // Add magenta border for predicted period dates (even if future)
-        if (isPredictedPeriod) {
-            dayDiv.style.border = '2px solid #ec4899'; // Magenta color
-            dayDiv.style.boxShadow = '0 0 4px rgba(236, 72, 153, 0.3)';
+        // --- NEW COLOR LOGIC ---
+        if (isActualPeriod) {
+            // Darker pink for confirmed past/current periods
+            dayDiv.style.backgroundColor = '#be185d'; // Dark Pink
+            dayDiv.style.color = 'white'; 
+        } else if (isPredictedPeriod) {
+            // Baby pink border for predictions
+            dayDiv.style.border = '2px solid #f9a8d4'; // Baby Pink
+            dayDiv.style.boxShadow = '0 0 4px rgba(249, 168, 212, 0.3)';
         }
         
         if (isFuture) {
