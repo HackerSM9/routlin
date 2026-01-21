@@ -217,8 +217,7 @@ function renderPeriodHistory() {
                     <div class="flex items-center gap-2">
                         <span class="text-gray-500">${duration} days</span>
                         <div class="flex gap-2">
-                            <button onclick="openEditPeriodEntry('${entry.id}')" class="text-blue-500 text-xs font-semibold hover:underline">Edit</button>
-                            <button onclick="deletePeriodEntry('${entry.id}')" class="text-red-500 text-xs font-semibold hover:underline" title="Delete Entry">🗑️</button>
+                            <button onclick="deletePeriodEntry('${entry.id}')" class="text-red-500 text-xs font-semibold hover:underline">Delete</button>
                         </div>
                     </div>
                 </div>
