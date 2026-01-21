@@ -81,9 +81,8 @@ export function renderCalendar() {
         
         // --- NEW COLOR LOGIC ---
         if (isActualPeriod) {
-            // Darker pink for confirmed past/current periods
-            dayDiv.style.backgroundColor = '#be185d'; // Dark Pink
-            dayDiv.style.color = 'white'; 
+            // Dark pink for confirmed past/current periods
+            dayDiv.style.border = '2px solid #be185d'; // Dark Pink
         } else if (isPredictedPeriod) {
             // Baby pink border for predictions
             dayDiv.style.border = '2px solid #f9a8d4'; // Baby Pink

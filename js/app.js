@@ -12,7 +12,7 @@ import { renderTags, openAddTagModal, closeAddTagModal, saveNewTag, openEditTagM
 import { updateStats, setTrendPeriod, tryPremiumFeature } from './stats.js';
 import { openAddGoalModal, closeAddGoalModal, saveGoal, updateGoals, deleteGoal } from './goals.js';
 import { changePassword, toggleDarkMode, exportData } from './profile.js';
-import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings, openEditPeriodEntry, closeEditPeriodEntry, saveEditPeriodEntry, deletePeriodEntry } from './health.js';
+import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings, deletePeriodEntry } from './health.js';
 
 // Make functions globally accessible for onclick handlers
 window.togglePassword = togglePassword;
@@ -55,10 +55,70 @@ window.logPeriod = logPeriod;
 window.openEditHealthSettings = openEditHealthSettings;
 window.closeEditHealthSettings = closeEditHealthSettings;
 window.saveHealthSettings = saveHealthSettings;
-window.openEditPeriodEntry = openEditPeriodEntry;
-window.closeEditPeriodEntry = closeEditPeriodEntry;
-window.saveEditPeriodEntry = saveEditPeriodEntry;
 window.deletePeriodEntry = deletePeriodEntry;
+
+// --- Bug Fix Functions ---
+
+// The following functions were missing, causing the "Edit" button in the period history to fail.
+// By adding them here, we ensure the modal opens, saves, and closes correctly.
+
+/**
+ * Opens the modal to edit a period entry.
+ * @param {number} index - The index of the period entry in the user's health data.
+ */
+function editPeriodEntry(index) {
+    const userData = appData.users[appData.currentUser];
+    const entry = userData.health.entries[index];
+
+    document.getElementById('editPeriodEntryIndex').value = index;
+    document.getElementById('editStartDate').value = entry.startDate;
+    document.getElementById('editEndDate').value = entry.endDate;
+
+    document.getElementById('editPeriodEntryModal').classList.add('active');
+}
+
+/**
+ * Saves the edited period entry.
+ */
+function saveEditPeriodEntry() {
+    const index = document.getElementById('editPeriodEntryIndex').value;
+    const startDate = document.getElementById('editStartDate').value;
+    const endDate = document.getElementById('editEndDate').value;
+    const userData = appData.users[appData.currentUser];
+
+    // Basic validation
+    if (!startDate || !endDate) {
+        alert('Please select both a start and end date.');
+        return;
+    }
+    if (new Date(startDate) > new Date(endDate)) {
+        alert('Start date cannot be after the end date.');
+        return;
+    }
+
+    userData.health.entries[index] = { startDate, endDate };
+
+    // Sort entries by date after editing
+    userData.health.entries.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+    saveData();
+    renderHealthTab();
+    renderCalendar(); // Re-render calendar to show changes
+    closeEditPeriodEntry();
+}
+
+/**
+ * Closes the edit period entry modal.
+ */
+function closeEditPeriodEntry() {
+    document.getElementById('editPeriodEntryModal').classList.remove('active');
+}
+
+// Assign to window object to be accessible from HTML
+window.editPeriodEntry = editPeriodEntry;
+window.saveEditPeriodEntry = saveEditPeriodEntry;
+window.closeEditPeriodEntry = closeEditPeriodEntry;
+
 
 // Initialize application
 function init() {
