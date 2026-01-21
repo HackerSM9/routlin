@@ -366,23 +366,23 @@ export function openEditPeriodEntry(entryId) {
 
     if (!entry) return;
 
-    // IMPORTANT: Make sure index.html has a modal with id="editPeriodModal"
+    // IMPORTANT: Make sure index.html has a modal with id="editPeriodEntryModal"
     // If not, this part will fail silently or throw error in console.
     // Assuming you will fix HTML or already have it locally.
-    const modal = document.getElementById('editPeriodModal');
+    const modal = document.getElementById('editPeriodEntryModal');
     if (modal) {
         modal.classList.add('active');
         document.getElementById('editPeriodEntryId').value = entryId;
         document.getElementById('editPeriodStartDate').value = entry.startDate;
         document.getElementById('editPeriodEndDate').value = entry.endDate;
     } else {
-        alert("Edit Modal not found in HTML. Please ensure index.html includes the editPeriodModal structure.");
+        alert("Edit Modal not found in HTML. Please ensure index.html includes the editPeriodEntryModal structure.");
     }
 }
 
 // Close edit period entry modal
 export function closeEditPeriodEntry() {
-    const modal = document.getElementById('editPeriodModal');
+    const modal = document.getElementById('editPeriodEntryModal');
     if (modal) modal.classList.remove('active');
 }
 
@@ -452,7 +452,7 @@ export function deletePeriodEntry(entryId) {
     saveData();
     // Use the existing modal closer just in case this was called from inside a modal, 
     // though usually it is called from the list.
-    const modal = document.getElementById('editPeriodModal');
+    const modal = document.getElementById('editPeriodEntryModal');
     if (modal && modal.classList.contains('active')) {
         closeEditPeriodEntry();
     }
