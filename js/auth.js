@@ -6,6 +6,7 @@ import { API_URL, appData, setAppData } from './config.js';
 import { saveData } from './data.js';
 import { showMainApp } from './app.js';
 import { vibrateLogin, vibrateDeleteAccount } from './haptics.js';
+import { customAlert, customConfirm } from './modals.js';
 
 // Initialize auth event listeners (call this on page load)
 export function initAuthListeners() {
@@ -149,7 +150,7 @@ export async function signup() {
         const verification = localStorage.getItem('activityTrackerData');
         if (!verification) {
             console.error('⚠️ Failed to save to localStorage!');
-            alert('Warning: Session may not persist after refresh. Please check browser settings.');
+            customAlert('Session may not persist after refresh. Please check browser settings.', 'Warning');
         } else {
             console.log('✅ Account created and session saved');
         }
@@ -212,7 +213,7 @@ export async function login() {
         const verification = localStorage.getItem('activityTrackerData');
         if (!verification) {
             console.error('⚠️ Failed to save to localStorage!');
-            alert('Warning: Session may not persist after refresh. Please check browser settings.');
+            customAlert('Session may not persist after refresh. Please check browser settings.', 'Warning');
         } else {
             console.log('✅ Session saved successfully');
         }
@@ -230,8 +231,9 @@ export async function login() {
 }
 
 // Logout function
-export function logout() {
-    if (!confirm('Are you sure you want to logout?')) {
+export async function logout() {
+    const confirmation = await customConfirm('Are you sure you want to logout?', 'Logout');
+    if (!confirmation) {
         return;
     }
     
@@ -250,14 +252,16 @@ export function logout() {
 
 // Delete account function
 export async function deleteAccount() {
-    const confirmation1 = confirm('⚠️ WARNING: Are you absolutely sure you want to DELETE your account?\n\nThis will permanently remove:\n• Your username\n• All your tags\n• All your activity data\n• All your goals\n• All your health data\n• Everything associated with your account\n\nThis action CANNOT be undone!');
-    
+    const message1 = 'This will permanently remove:<br>• Your username<br>• All your tags<br>• All your activity data<br>• All your goals<br>• All your health data<br>• Everything associated with your account<br><br><b>This action CANNOT be undone!</b>';
+    const confirmation1 = await customConfirm(message1, '⚠️ WARNING: Are you sure?');
+
     if (!confirmation1) {
         return;
     }
-    
-    const confirmation2 = confirm('FINAL WARNING: This is your last chance!\n\nType your username mentally and confirm deletion.\n\nClick OK to PERMANENTLY DELETE your account.');
-    
+
+    const message2 = 'This is your final chance. Clicking OK will permanently delete your account.';
+    const confirmation2 = await customConfirm(message2, 'FINAL WARNING');
+
     if (!confirmation2) {
         return;
     }
@@ -280,7 +284,7 @@ export async function deleteAccount() {
             throw new Error(data.error || 'Failed to delete account');
         }
         
-        alert('✅ Your account has been permanently deleted.\n\nAll your data has been removed from our servers.\n\nGoodbye!');
+        customAlert('Your account has been permanently deleted.<br><br>All your data has been removed from our servers.<br><br>Goodbye!', '✅ Account Deleted');
         
         appData.currentUser = null;
         appData.sessionToken = null;
@@ -292,6 +296,6 @@ export async function deleteAccount() {
         document.getElementById('loginPassword').value = '';
         
     } catch (error) {
-        alert('❌ Failed to delete account: ' + (error.message || 'Please try again later.'));
+        customAlert('Failed to delete account: ' + (error.message || 'Please try again later.'), '❌ Deletion Failed');
     }
 }

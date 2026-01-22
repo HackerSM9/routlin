@@ -14,6 +14,7 @@ import { openAddGoalModal, closeAddGoalModal, saveGoal, updateGoals, deleteGoal 
 import { changePassword, toggleDarkMode, exportData } from './profile.js';
 import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings, deletePeriodEntry } from './health.js';
 import { vibrateLogin, vibrateTabChange } from './haptics.js';
+import { customAlert, customConfirm } from './modals.js';
 
 // Make functions globally accessible for onclick handlers
 window.togglePassword = togglePassword;
@@ -57,6 +58,8 @@ window.openEditHealthSettings = openEditHealthSettings;
 window.closeEditHealthSettings = closeEditHealthSettings;
 window.saveHealthSettings = saveHealthSettings;
 window.deletePeriodEntry = deletePeriodEntry;
+window.customAlert = customAlert;
+window.customConfirm = customConfirm;
 
 // --- Bug Fix Functions ---
 
@@ -89,11 +92,11 @@ function saveEditPeriodEntry() {
 
     // Basic validation
     if (!startDate || !endDate) {
-        alert('Please select both a start and end date.');
+        customAlert('Please select both a start and end date.', 'Invalid Date');
         return;
     }
     if (new Date(startDate) > new Date(endDate)) {
-        alert('Start date cannot be after the end date.');
+        customAlert('Start date cannot be after the end date.', 'Invalid Date Range');
         return;
     }
 

@@ -5,6 +5,7 @@
 import { API_URL, appData, statsChart } from './config.js';
 import { renderCalendar } from './calendar.js';
 import { updateStats } from './stats.js';
+import { customAlert, customConfirm } from './modals.js';
 
 // Change password
 export async function changePassword() {
@@ -12,12 +13,12 @@ export async function changePassword() {
     const newPassword = document.getElementById('newPassword').value;
     
     if (!currentPassword || !newPassword) {
-        alert('Please fill in both fields');
+        customAlert('Please fill in both current and new password fields.', 'Missing Information');
         return;
     }
     
     if (newPassword.length < 4) {
-        alert('New password must be at least 4 characters');
+        customAlert('New password must be at least 4 characters long for security.', 'Password Too Short');
         return;
     }
     
@@ -41,10 +42,10 @@ export async function changePassword() {
         document.getElementById('currentPassword').value = '';
         document.getElementById('newPassword').value = '';
         
-        alert('✅ Password changed successfully!');
+        customAlert('Your password has been changed successfully!', '✅ Success');
         
     } catch (error) {
-        alert('❌ ' + (error.message || 'Failed to change password. Please try again.'));
+        customAlert(error.message || 'An unknown error occurred. Please try again.', '❌ Password Change Failed');
     }
 }
 
@@ -61,7 +62,7 @@ export function toggleDarkMode() {
 }
 
 // Export data
-export function exportData() {
+export async function exportData() {
     const userData = appData.users[appData.currentUser];
     const exportDataObj = {
         username: appData.currentUser,
@@ -73,19 +74,35 @@ export function exportData() {
     
     const dataStr = JSON.stringify(exportDataObj, null, 2);
     
-    if (confirm('Do you want to copy the data code to clipboard? (Useful for pasting on another device)')) {
-        navigator.clipboard.writeText(dataStr).then(() => {
-            alert('Data copied to clipboard! Open the app on your other device, go to Login > Transfer Data, and paste it there.');
-        });
+    const confirmation = await customConfirm(
+        'Do you want to copy your data to the clipboard? This is useful for transferring it to another device.', 
+        'Export Data'
+    );
+
+    if (confirmation) {
+        try {
+            await navigator.clipboard.writeText(dataStr);
+            customAlert('Your data has been copied to the clipboard. You can now paste it on another device.', '✅ Copied!');
+        } catch (err) {
+            customAlert('Failed to copy data to clipboard. Your browser might not support this feature or permission was denied.', 'Copy Failed');
+        }
     } else {
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `activity-tracker-${appData.currentUser}-${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        
-        URL.revokeObjectURL(url);
+        try {
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `routlin-data-${appData.currentUser}-${new Date().toISOString().split('T')[0]}.json`;
+            
+            // Append to body, click, and then remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            customAlert('Failed to download your data file.', 'Download Failed');
+        }
     }
 }
