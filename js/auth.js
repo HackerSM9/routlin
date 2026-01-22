@@ -132,6 +132,8 @@ export async function signup() {
             throw new Error(data.error || 'Signup failed');
         }
         
+        vibrateDeleteAccount(); // Strong vibration for account creation
+
         // Auto-login after signup
         appData.currentUser = data.username;
         appData.sessionToken = data.sessionToken;

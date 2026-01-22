@@ -10,11 +10,11 @@ export function vibrateLogin() {
 }
 
 /**
- * Triggers a strong vibration pattern for deleting an account.
+ * Triggers a strong vibration pattern for creating or deleting an account.
  */
 export function vibrateDeleteAccount() {
     if (navigator.vibrate) {
-        navigator.vibrate([200, 50, 200]); // Two strong vibrations with a short pause
+        navigator.vibrate(200); // A single strong vibration
     }
 }
 
@@ -23,6 +23,6 @@ export function vibrateDeleteAccount() {
  */
 export function vibrateTabChange() {
     if (navigator.vibrate) {
-        navigator.vibrate(50); // A short 50ms vibration
+        navigator.vibrate(20); // A very short 20ms vibration
     }
 }
