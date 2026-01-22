@@ -5,6 +5,7 @@
 import { appData, statsChart, setStatsChart, trendChart, setTrendChart, currentTrendPeriod, setCurrentTrendPeriod, trendObserver, setTrendObserver } from './config.js';
 import { getDateRange } from './utils.js';
 import { updateGoals } from './goals.js';
+import { customAlert } from './modals.js';
 
 // Update all statistics
 export function updateStats() {
@@ -224,7 +225,13 @@ export function setTrendPeriod(period) {
 
 // Try premium feature
 export function tryPremiumFeature(feature) {
-    alert('🌟 Premium Feature Locked!\n\nUnlock advanced analytics:\n• Weekly trends\n• Monthly patterns\n• Yearly overview\n• Advanced insights\n\nUpgrade to Premium to access these features!\n\nPremium coming soon!');
+    const message = `Unlock advanced analytics:<br>
+        • Weekly trends<br>
+        • Monthly patterns<br>
+        • Yearly overview<br>
+        • Advanced insights<br><br>
+        <b>Premium coming soon!</b>`;
+    customAlert(message, '🌟 Premium Feature Locked!');
 }
 
 // Update trend chart
@@ -276,7 +283,7 @@ export function renderTrendChart() {
         const dateStr = `${y}-${m}-${d}`;
         
         if (i === 0) labels.push('Today');
-        else labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+        else labels.push(date.toLocaleString('en-US', { weekday: 'short' }));
         
         const dayTags = userData.entries[dateStr] || [];
         data.push(dayTags.length);
