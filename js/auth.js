@@ -5,6 +5,7 @@
 import { API_URL, appData, setAppData } from './config.js';
 import { saveData } from './data.js';
 import { showMainApp } from './app.js';
+import { vibrateLogin, vibrateDeleteAccount } from './haptics.js';
 
 // Initialize auth event listeners (call this on page load)
 export function initAuthListeners() {
@@ -232,6 +233,7 @@ export function logout() {
         return;
     }
     
+    vibrateLogin(); // Vibration for logout
     appData.currentUser = null;
     appData.sessionToken = null;
     localStorage.removeItem('activityTrackerData');
@@ -258,6 +260,8 @@ export async function deleteAccount() {
         return;
     }
     
+    vibrateDeleteAccount(); // Strong vibration for deletion
+
     try {
         const response = await fetch(`${API_URL}/api/delete-account`, {
             method: 'POST',

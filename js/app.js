@@ -13,6 +13,7 @@ import { updateStats, setTrendPeriod, tryPremiumFeature } from './stats.js';
 import { openAddGoalModal, closeAddGoalModal, saveGoal, updateGoals, deleteGoal } from './goals.js';
 import { changePassword, toggleDarkMode, exportData } from './profile.js';
 import { initHealthData, renderHealthTab, openHealthSetup, closeHealthSetup, saveHealthSetup, openLogPeriodModal, closeLogPeriodModal, logPeriod, openEditHealthSettings, closeEditHealthSettings, saveHealthSettings, deletePeriodEntry } from './health.js';
+import { vibrateLogin, vibrateTabChange } from './haptics.js';
 
 // Make functions globally accessible for onclick handlers
 window.togglePassword = togglePassword;
@@ -156,6 +157,7 @@ function init() {
 
 // Show main UI after authentication
 export function showMainApp() {
+    vibrateLogin();
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
     document.getElementById('profileUsername').textContent = appData.currentUser;
@@ -175,6 +177,7 @@ export function showMainApp() {
 
 // Switch visible tab
 export function switchTab(tab) {
+    vibrateTabChange();
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
