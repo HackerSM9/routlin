@@ -17,7 +17,7 @@ body {
 
 /* ==== ANIMATED GRADIENT BACKGROUND ==== */
 .auth-background {
-    background: linear-gradient(125deg, #020617, #1e1b4b, #4c1d95, #2e1065, #0c4a6e, #1e1b4b);
+    background: linear-gradient(45deg, #4c1d95, #2563eb, #ec4899);
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
     height: 100vh;
@@ -32,14 +32,8 @@ body {
     0% {
         background-position: 0% 50%;
     }
-    25% {
-        background-position: 50% 100%;
-    }
     50% {
         background-position: 100% 50%;
-    }
-    75% {
-        background-position: 50% 0%;
     }
     100% {
         background-position: 0% 50%;
@@ -53,102 +47,43 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 20px;
 }
 
 .auth-title {
     font-size: 4rem;
-    font-weight: 900;
-    color: #f8fafc;
+    font-weight: 800;
+    color: white;
     margin-bottom: 2rem;
-    text-shadow: 0 0 40px rgba(139, 92, 246, 0.5);
-    text-align: center;
-    letter-spacing: -2px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .auth-card {
-    position: relative;
-    background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border-radius: 24px;
-    padding: 3rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 2rem;
+    padding: 2.5rem;
     width: 100%;
     max-width: 28rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-}
-
-.auth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 24px;
-    padding: 2px;
-    background: linear-gradient(135deg, #4338ca, #6d28d9, #86198f, #1d4ed8, #4338ca);
-    background-size: 300% 300%;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: borderGradient 4s ease infinite;
-    z-index: -1;
-}
-
-@keyframes borderGradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-.auth-input {
-    background: rgba(2, 6, 23, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #f1f5f9 !important;
-    transition: all 0.3s ease;
-}
-
-.auth-input:focus {
-    background: rgba(2, 6, 23, 0.8) !important;
-    border-color: #8b5cf6 !important;
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15) !important;
-}
-
-.auth-input::placeholder {
-    color: rgba(148, 163, 184, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .gradient-btn {
-    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    background-image: linear-gradient(to right, #ec4899, #8b5cf6, #2563eb);
+    background-size: 200% auto;
     color: white;
     border: none;
-    padding: 1rem 1.5rem;
-    border-radius: 16px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
     font-weight: 600;
-    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 100%;
-    text-align: center;
-    margin-bottom: 1rem;
-    display: block;
-    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3);
+    transition: all 0.3s ease;
 }
 
 .gradient-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.4);
-    filter: brightness(1.1);
+    background-position: right center;
+    transform: scale(1.05);
 }
+
 
 /* ==== CALENDAR ==== */
 .calendar-grid {
@@ -610,14 +545,99 @@ input[type="text"]:focus {
     .calendar-day {
         font-size: 14px;
     }
+}
 
-    .auth-title {
-        font-size: 3rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .auth-card {
-        padding: 2rem;
-        max-width: 95%;
-    }
+/* Custom Modal */
+.modal-custom {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-custom-content {
+    position: relative;
+    margin: auto;
+    padding: 2px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #89f7fe, #66a6ff);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    display: flex;
+    flex-direction: column;
+}
+
+.dark .modal-custom-content {
+    background: linear-gradient(145deg, #374151, #111827);
+}
+
+.modal-custom-inner {
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 14px;
+}
+
+.dark .modal-custom-inner {
+    background-color: #1f2937;
+}
+
+.modal-custom-header {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #111827;
+}
+
+.dark .modal-custom-header {
+    color: #ffffff;
+}
+
+.modal-custom-body {
+    margin-bottom: 24px;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #374151;
+}
+
+.dark .modal-custom-body {
+    color: #d1d5db;
+}
+
+.modal-custom-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-custom-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-custom-button-primary {
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.modal-custom-button-secondary {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.dark .modal-custom-button-secondary {
+    background-color: #4b5563;
+    color: #ffffff;
 }
