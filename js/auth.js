@@ -247,6 +247,12 @@ export async function logout() {
     document.getElementById('loginUsername').value = '';
     document.getElementById('loginPassword').value = '';
     
+    // Ensure auth background is visible on logout
+    const authBg = document.querySelector('.auth-background');
+    if (authBg) {
+        authBg.style.display = 'block';
+    }
+    
     console.log('✅ Logged out successfully');
 }
 
