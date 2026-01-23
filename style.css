@@ -17,7 +17,7 @@ body {
 
 /* ==== ANIMATED GRADIENT BACKGROUND ==== */
 .auth-background {
-    background: linear-gradient(125deg, #020617, #1e1b4b, #7c3aed, #2e1065, #0c4a6e, #1e1b4b);
+    background: linear-gradient(125deg, #020617, #1e1b4b, #4c1d95, #2e1065, #0c4a6e, #1e1b4b);
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
     height: 100vh;
@@ -89,7 +89,7 @@ body {
     bottom: 0;
     border-radius: 24px;
     padding: 2px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899, #3b82f6, #6366f1);
+    background: linear-gradient(135deg, #4338ca, #6d28d9, #86198f, #1d4ed8, #4338ca);
     background-size: 300% 300%;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -128,7 +128,7 @@ body {
 }
 
 .gradient-btn {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
     color: white;
     border: none;
     padding: 1rem 1.5rem;
