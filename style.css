@@ -8,11 +8,144 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     transition: background-color 0.3s, color 0.3s;
+    /* Ensure body doesn't hide the fixed gradient initially, but provides defaults */
 }
 
 .dark {
     background-color: #1a1a1a;
     color: #e0e0e0;
+}
+
+/* ==== ANIMATED GRADIENT BACKGROUND ==== */
+.auth-background {
+    background: linear-gradient(125deg, #020617, #1e1b4b, #7c3aed, #2e1065, #0c4a6e, #1e1b4b);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 100%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ==== AUTH PAGE LAYOUT ==== */
+#authScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.auth-title {
+    font-size: 4rem;
+    font-weight: 900;
+    color: #f8fafc;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 40px rgba(139, 92, 246, 0.5);
+    text-align: center;
+    letter-spacing: -2px;
+}
+
+.auth-card {
+    position: relative;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 24px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 28rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 24px;
+    padding: 2px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899, #3b82f6, #6366f1);
+    background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: borderGradient 4s ease infinite;
+    z-index: -1;
+}
+
+@keyframes borderGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.auth-input {
+    background: rgba(2, 6, 23, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #f1f5f9 !important;
+    transition: all 0.3s ease;
+}
+
+.auth-input:focus {
+    background: rgba(2, 6, 23, 0.8) !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15) !important;
+}
+
+.auth-input::placeholder {
+    color: rgba(148, 163, 184, 0.5) !important;
+}
+
+.gradient-btn {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1rem;
+    display: block;
+    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3);
+}
+
+.gradient-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.4);
+    filter: brightness(1.1);
+}
+
+
+/* Ensure the Main App covers the auth gradient when logged in */
+#mainApp {
+    background-color: #ffffff; 
+    min-height: 100vh;
+    position: relative;
+    z-index: 1; /* Sit above the fixed auth background */
+}
+
+.dark #mainApp {
+    background-color: #1a1a1a;
 }
 
 /* ==== CALENDAR ==== */
@@ -474,6 +607,17 @@ input[type="text"]:focus {
 
     .calendar-day {
         font-size: 14px;
+    }
+
+    /* Auth Responsive */
+    .auth-title {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .auth-card {
+        padding: 2rem;
+        max-width: 95%;
     }
 }
 
